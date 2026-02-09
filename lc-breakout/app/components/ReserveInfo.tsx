@@ -26,16 +26,16 @@ export default function Home() {
     }, []);
 
     return (
-    <main className="flex min-h-screen flex-col items-center justify-start p-4">
+    <main className="flex min-h-screen flex-col items-center justify-start">
       <h1 className="text-4xl font-bold">LC Breakout Room Sign-up</h1>
       <p className="mt-4 text-lg">Sign up for a breakout room session.</p>
     <div className="flex flex-col items-center mt-8">
-            <div className="mb-8 flex gap-4 justify-center">
+            <div className="mb-8 flex gap-4 justify-center flex-wrap">
                 {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map(day => (
                     <button
                         key={day}
                         onClick={() => setSelectedDay(day)}
-                        className={`px-6 py-2 rounded-lg font-semibold transition cursor-pointer ${
+                        className={`px-6 py-2 rounded-lg font-semibold transition cursor-pointer w-36 h-18 ${
                             selectedDay === day
                                 ? "bg-blue-600 text-white shadow-lg"
                                 : "bg-gray-700 text-white hover:bg-gray-600"
@@ -46,11 +46,11 @@ export default function Home() {
                 ))}
             </div>
             {selectedDay && (
-                <div className="w-3/4">
-                    <h2 className="mb-4 text-center text-white">Inventory for {selectedDay}</h2>
+                <div className="w-3/4 flex flex-col items-center">
+                    <h2 className="mb-4 text-center text-2xl font-bold text-black dark:text-white">Rooms for {selectedDay}</h2>
                     <table className="min-w-full border-collapse border border-black-300 text-black">
                         <thead>
-                            <tr className="bg-purple-400">
+                            <tr className="bg-red-600 text-white">
                                 <th className="border border-black dark:border-gray-300 px-4 py-2 w-70">Period</th>
                                 <th className="border border-black dark:border-gray-300 px-4 py-2 w-40">Time</th>
                                 <th className="border border-black dark:border-gray-300 px-4 py-2 w-50">Room 1</th>
