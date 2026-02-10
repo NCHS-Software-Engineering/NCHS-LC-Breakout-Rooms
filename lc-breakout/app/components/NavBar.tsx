@@ -13,8 +13,8 @@ export default function NavBar() {
                 <Link href="/" className="hover:underline hover:text-gray-200 transition-colors">
                     Home 
                 </Link>
-                <Link href="/" className="hover:underline hover:text-gray-200 transition-colors">
-                    placeholder
+                <Link href="/admin/login" className="hover:underline hover:text-gray-200 transition-colors">
+                    Admin Login Form
                 </Link>
 
                {
