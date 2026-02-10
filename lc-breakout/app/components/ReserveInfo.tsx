@@ -62,12 +62,12 @@ export default function Home() {
                             {periods
                                 .filter(period => period.DayName === selectedDay)
                                 .map((period, index) => (
-                                    <tr key={index} className={index % 2 === 0 ? "bg-blue-400" : "bg-blue-300"}>
-                                        <td className="border border-black dark:border-gray-300 px-4 py-2">{period.PeriodName}</td>
+                                    <tr key={index} className={index % 2 === 0 ? "bg-gray-300" : "bg-gray-100"}>
+                                        <td className="border border-black dark:border-gray-300 px-4 py-2 font-bold">{period.PeriodName}</td>
                                         <td className="border border-black dark:border-gray-300 px-4 py-2">{period.StartTime} - {period.EndTime}</td>
-                                        <td className="border border-black dark:border-gray-300 px-4 py-2">{period.Room1 ? "Room 1 Available" : "Room 1 Unavailable"}</td>
-                                        <td className="border border-black dark:border-gray-300 px-4 py-2">{period.Room2 ? "Room 2 Available" : "Room 2 Unavailable"}</td>
-                                        <td className="border border-black dark:border-gray-300 px-4 py-2">{period.Room3 ? "Room 3 Available" : "Room 3 Unavailable"}</td>
+                                        <td className="border border-black dark:border-gray-300 px-4 py-2">{period.Room1 ? "Vacant" : "Occupied"}</td>
+                                        <td className="border border-black dark:border-gray-300 px-4 py-2">{period.Room2 ? "Vacant" : "Occupied"}</td>
+                                        <td className="border border-black dark:border-gray-300 px-4 py-2">{period.Room3 ? "Vacant" : "Occupied"}</td>
                                     </tr>
                                 ))}
                         </tbody>
