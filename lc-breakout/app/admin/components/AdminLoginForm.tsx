@@ -1,6 +1,11 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+
+// Hardcoded credentials for demonstration (change these!)
+const ADMIN_USERNAME = "admin";
+const ADMIN_PASSWORD = "password123";
 
 export default function AdminLoginForm() {
   const [username, setUsername] = useState("");
@@ -8,6 +13,7 @@ export default function AdminLoginForm() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -15,23 +21,26 @@ export default function AdminLoginForm() {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual authentication logic
+      // Validate input
       if (!username || !password) {
         setError("Please enter both username and password");
+        setIsLoading(false);
         return;
       }
 
-      // Placeholder authentication
-      console.log("Login attempt:", { username, password });
-      
-      // Example: You would call an API endpoint here
-      // const response = await fetch("/api/admin/login", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ username, password }),
-      // });
-
-      setError("Authentication not yet configured");
+      // Check credentials
+      if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        // Successful login
+        console.log("Login successful!");
+        // Store session/token here if needed
+        // localStorage.setItem("adminLoggedIn", "true");
+        
+        // Redirect to admin dashboard
+        router.push("/admin/dashboard");
+      } else {
+        // Invalid credentials
+        setError("Invalid username or password. Try admin / password123");
+      }
     } catch (err) {
       setError("An error occurred during login. Please try again.");
       console.error(err);
