@@ -45,7 +45,9 @@ export default function AdminDashboard() {
             <p className="text-gray-600 mb-4">
               Manage LC breakout room settings and reservations
             </p>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 cursor-pointer">
+            <button 
+              onClick={() => router.push("/admin/manage-rooms")}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 cursor-pointer">
               Manage Rooms
             </button>
           </div>
@@ -65,9 +67,11 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-2">Reports</h2>
             <p className="text-gray-600 mb-4">
-              View usage reports and statistics
+              View usage history and statistics
             </p>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 cursor-pointer">
+            <button 
+              onClick={() => router.push("/admin/reports")}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 cursor-pointer">
               View Reports
             </button>
           </div>
