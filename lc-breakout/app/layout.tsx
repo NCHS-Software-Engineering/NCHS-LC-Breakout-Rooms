@@ -39,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${montserrat.variable} ${geistMono.variable} antialiased !bg-[#fefefe] dark:!bg-black`}
+        className={`${montserrat.variable} ${geistMono.variable} antialiased !bg-[#fefefe] dark:!bg-[#0f1415] !text-black dark:!text-white`}
       >
         
           <Navbar />

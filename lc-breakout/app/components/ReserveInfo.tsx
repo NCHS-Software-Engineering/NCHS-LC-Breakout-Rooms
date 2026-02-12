@@ -50,7 +50,7 @@ export default function Home() {
             </div>
             {selectedDay && (
                 <div className="w-3/4 flex flex-col items-center">
-                    <div className="flex flex-col items-center bg-red-400 text-black rounded-xl w-full p-6 shadow-lg mb-4">
+                    <div className="flex flex-col items-center bg-red-400 text-black rounded-xl w-50% p-6 shadow-lg mb-4">
                         {selectedRoom ? (
                             <div className="flex gap-2 items-center w-full">
                                 <input
@@ -104,12 +104,12 @@ export default function Home() {
                                                     setInput("");
                                                 }
                                             }}
-                                            className={`border border-black dark:border-gray-300 px-4 py-2 cursor-pointer transition ${
+                                            className={`border border-black dark:border-gray-300 px-4 py-2 font-bold box-border transition ${
                                                 period.Room1 
                                                     ? selectedRoom?.periodIndex === index && selectedRoom?.roomNumber === 1
-                                                        ? "bg-yellow-400 font-bold" 
-                                                        : "hover:bg-gray-200"
-                                                    : "opacity-50 cursor-not-allowed"
+                                                        ? "bg-green-600 text-white hover:bg-green-700 cursor-pointer" 
+                                                        : "bg-green-500 text-white hover:bg-green-600 cursor-pointer"
+                                                    : "bg-red-500 text-white cursor-not-allowed"
                                             }`}>
                                             {period.Room1 ? "Vacant" : "Occupied"}
                                         </td>
@@ -120,12 +120,12 @@ export default function Home() {
                                                     setInput("");
                                                 }
                                             }}
-                                            className={`border border-black dark:border-gray-300 px-4 py-2 cursor-pointer transition ${
+                                            className={`border border-black dark:border-gray-300 px-4 py-2 font-bold box-border transition ${
                                                 period.Room2 
                                                     ? selectedRoom?.periodIndex === index && selectedRoom?.roomNumber === 2
-                                                        ? "bg-yellow-400 font-bold" 
-                                                        : "hover:bg-gray-200"
-                                                    : "opacity-50 cursor-not-allowed"
+                                                        ? "bg-green-600 text-white hover:bg-green-700 cursor-pointer" 
+                                                        : "bg-green-500 text-white hover:bg-green-600 cursor-pointer"
+                                                    : "bg-red-500 text-white cursor-not-allowed"
                                             }`}>
                                             {period.Room2 ? "Vacant" : "Occupied"}
                                         </td>
@@ -136,12 +136,12 @@ export default function Home() {
                                                     setInput("");
                                                 }
                                             }}
-                                            className={`border border-black dark:border-gray-300 px-4 py-2 cursor-pointer transition ${
+                                            className={`border border-black dark:border-gray-300 px-4 py-2 font-bold box-border transition ${
                                                 period.Room3 
                                                     ? selectedRoom?.periodIndex === index && selectedRoom?.roomNumber === 3
-                                                        ? "bg-yellow-400 font-bold" 
-                                                        : "hover:bg-gray-200"
-                                                    : "opacity-50 cursor-not-allowed"
+                                                        ? "bg-green-600 text-white hover:bg-green-700 cursor-pointer" 
+                                                        : "bg-green-500 text-white hover:bg-green-600 cursor-pointer"
+                                                    : "bg-red-500 text-white cursor-not-allowed"
                                             }`}>
                                             {period.Room3 ? "Vacant" : "Occupied"}
                                         </td>
