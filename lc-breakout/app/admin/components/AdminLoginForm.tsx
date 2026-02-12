@@ -64,7 +64,7 @@ export default function AdminLoginForm() {
           onChange={(e) => setUsername(e.target.value)}
           placeholder="Enter your username"
           disabled={isLoading}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
           required
         />
       </div>
@@ -83,7 +83,7 @@ export default function AdminLoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
             disabled={isLoading}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
             required
           />
           <button
@@ -118,7 +118,7 @@ export default function AdminLoginForm() {
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+        className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
       >
         {isLoading ? (
           <>
@@ -140,7 +140,7 @@ export default function AdminLoginForm() {
           id="remember"
           name="remember"
           disabled={isLoading}
-          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
         />
         <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
           Remember me

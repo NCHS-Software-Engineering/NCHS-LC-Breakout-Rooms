@@ -68,28 +68,14 @@ export default function Reports() {
     return filtered;
   }, [historyData, searchName, searchRoom, searchDate, sortBy, sortOrder]);
 
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const totalSessions = historyData.length;
-    const totalMinutes = historyData.reduce((sum, entry) => sum + entry.duration, 0);
-    const avgDuration = (totalMinutes / totalSessions).toFixed(0);
-    const roomCounts = {
-      1: historyData.filter((e) => e.roomNumber === 1).length,
-      2: historyData.filter((e) => e.roomNumber === 2).length,
-      3: historyData.filter((e) => e.roomNumber === 3).length,
-    };
-
-    return { totalSessions, totalMinutes, avgDuration, roomCounts };
-  }, [historyData]);
-
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <nav className="bg-white shadow-md">
+    <main className="min-h-screen bg-gradient-to-br from-red-50 to-red-100">
+      <nav className="bg-white shadow-md border-b border-red-100">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.back()}
-              className="text-blue-600 hover:text-blue-800 font-semibold transition duration-200"
+              className="text-red-600 hover:text-red-800 font-semibold transition duration-200"
             >
               ← Back
             </button>
@@ -99,30 +85,6 @@ export default function Reports() {
       </nav>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Statistics Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-gray-600 text-sm font-semibold">Total Sessions</p>
-            <p className="text-3xl font-bold text-blue-600 mt-2">{stats.totalSessions}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-gray-600 text-sm font-semibold">Avg Duration</p>
-            <p className="text-3xl font-bold text-blue-600 mt-2">{stats.avgDuration} min</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-gray-600 text-sm font-semibold">Room 1 Usage</p>
-            <p className="text-3xl font-bold text-blue-600 mt-2">{stats.roomCounts[1]}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-gray-600 text-sm font-semibold">Room 2 Usage</p>
-            <p className="text-3xl font-bold text-blue-600 mt-2">{stats.roomCounts[2]}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-gray-600 text-sm font-semibold">Room 3 Usage</p>
-            <p className="text-3xl font-bold text-blue-600 mt-2">{stats.roomCounts[3]}</p>
-          </div>
-        </div>
-
         {/* Filters Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Filters</h2>
@@ -137,7 +99,7 @@ export default function Reports() {
                 placeholder="Enter name or email..."
                 value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
 
@@ -149,7 +111,7 @@ export default function Reports() {
               <select
                 value={searchRoom}
                 onChange={(e) => setSearchRoom(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 <option value="">All Rooms</option>
                 <option value="1">Room 1</option>
@@ -167,7 +129,7 @@ export default function Reports() {
                 type="date"
                 value={searchDate}
                 onChange={(e) => setSearchDate(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
 
@@ -195,7 +157,7 @@ export default function Reports() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as "date" | "name" | "room")}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 <option value="date">Date</option>
                 <option value="name">Name</option>
@@ -209,7 +171,7 @@ export default function Reports() {
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 <option value="desc">Descending</option>
                 <option value="asc">Ascending</option>
@@ -234,15 +196,12 @@ export default function Reports() {
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Room</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Date</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Check-In</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Check-Out</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Duration</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredAndSortedData.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
                       No records found
                     </td>
                   </tr>
@@ -252,19 +211,12 @@ export default function Reports() {
                       <td className="px-6 py-3 text-sm text-gray-900 font-semibold">{entry.name}</td>
                       <td className="px-6 py-3 text-sm text-gray-600">{entry.email}</td>
                       <td className="px-6 py-3">
-                        <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
+                        <span className="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-semibold">
                           {entry.room}
                         </span>
                       </td>
                       <td className="px-6 py-3 text-sm text-gray-600">
                         {new Date(entry.date).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-3 text-sm text-gray-600">{entry.checkInTime}</td>
-                      <td className="px-6 py-3 text-sm text-gray-600">
-                        {entry.checkOutTime || "Still in room"}
-                      </td>
-                      <td className="px-6 py-3 text-sm font-semibold text-gray-900">
-                        {entry.duration} min
                       </td>
                     </tr>
                   ))
@@ -279,7 +231,7 @@ export default function Reports() {
           <button className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold rounded-lg transition duration-200">
             Download CSV
           </button>
-          <button className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200">
+          <button className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200">
             Print Report
           </button>
         </div>

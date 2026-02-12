@@ -7,13 +7,13 @@ export default function NavBar() {
     //const {data: session} = useSession();
 
     return (
-        <nav className="bg-[#fefefe] text-black w-full py-4 px-8 flex justify-between items-center shadow-md">
+        <nav className="bg-red-600 text-white w-full py-4 px-8 flex justify-between items-center shadow-md">
             <h1 className="text-xl font-bold">LC Breakout Rooms</h1>
             <div className="flex gap-6">
-                <Link href="/" className="hover:underline hover:text-gray-200 transition-colors">
+                <Link href="/" className="hover:underline hover:text-red-100 transition-colors">
                     Home 
                 </Link>
-                <Link href="/admin/login" className="hover:underline hover:text-gray-200 transition-colors">
+                <Link href="/admin/login" className="hover:underline hover:text-red-100 transition-colors">
                     Admin Login Form
                 </Link>
 

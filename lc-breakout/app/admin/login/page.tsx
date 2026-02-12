@@ -2,7 +2,7 @@ import AdminLoginForm from "../components/AdminLoginForm";
 
 export default function AdminLoginPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100 px-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-xl p-8">
           <div className="text-center mb-8">
