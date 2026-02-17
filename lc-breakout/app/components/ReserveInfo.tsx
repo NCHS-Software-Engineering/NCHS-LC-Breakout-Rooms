@@ -14,7 +14,7 @@ type Period = {
 
 export default function Home() {
     const [periods, setPeriods] = useState<Period[]>([]);
-    const [input, setInput] = useState("");
+    //const [input, setInput] = useState("");
     const [selectedDay, setSelectedDay] = useState("");
     const [selectedRoom, setSelectedRoom] = useState<{periodIndex: number; roomNumber: number; period: string; room: string; time: string} | null>(null);
 
@@ -50,23 +50,19 @@ export default function Home() {
             </div>
             {selectedDay && (
                 <div className="w-3/4 flex flex-col items-center">
+                     {/* Adjust this to conditionally show only if you are logged in */}
                     <div className="flex flex-col items-center bg-red-400 text-black rounded-xl w-50% p-6 shadow-lg mb-4">
                         {selectedRoom ? (
-                            <div className="flex gap-2 items-center w-full">
-                                <input
-                                    type="text"
-                                    value = {input}
-                                    onChange = {(e) => setInput(e.target.value.slice(0, 5))}
-                                    placeholder="Enter ID"
-                                    maxLength={5}
-                                    className="w-32 px-3 py-2 rounded-lg border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 focus:outline-none bg-white text-black placeholder-gray-500 transition-all duration-200 text-base font-medium text-center"
-                                />
+                            <div className="flex flex-col gap-4 items-center w-full">
+                                {/* Adjust this to conditionally show only if you are logged in */}
+                                <div className="text-lg font-semibold">
+                                    You are logged in as: test-user
+                                </div>
                                 <button
-                                    onClick={() => input.length === 5 && alert(`ID: ${input}, Room: ${selectedRoom.room}`)}
-                                    disabled={input.length < 1}
-                                    className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-pointer hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+                                    onClick={() => alert(`ID: test-id, Room: ${selectedRoom.room}`)}
+                                    className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-pointer hover:bg-blue-700 transition"
                                 >
-                                    Enter
+                                    Reserve
                                 </button>
                             </div>
                         ) : (
@@ -101,7 +97,7 @@ export default function Home() {
                                             onClick={() => {
                                                 if (period.Room1) {
                                                     setSelectedRoom({periodIndex: index, roomNumber: 1, period: period.PeriodName, room: "Room 1", time: `${period.StartTime} - ${period.EndTime}`});
-                                                    setInput("");
+                                                    
                                                 }
                                             }}
                                             className={`border border-black dark:border-gray-300 px-4 py-2 font-bold box-border transition ${
@@ -117,7 +113,7 @@ export default function Home() {
                                             onClick={() => {
                                                 if (period.Room2) {
                                                     setSelectedRoom({periodIndex: index, roomNumber: 2, period: period.PeriodName, room: "Room 2", time: `${period.StartTime} - ${period.EndTime}`});
-                                                    setInput("");
+                                                    
                                                 }
                                             }}
                                             className={`border border-black dark:border-gray-300 px-4 py-2 font-bold box-border transition ${
@@ -133,7 +129,7 @@ export default function Home() {
                                             onClick={() => {
                                                 if (period.Room3) {
                                                     setSelectedRoom({periodIndex: index, roomNumber: 3, period: period.PeriodName, room: "Room 3", time: `${period.StartTime} - ${period.EndTime}`});
-                                                    setInput("");
+                                                    
                                                 }
                                             }}
                                             className={`border border-black dark:border-gray-300 px-4 py-2 font-bold box-border transition ${
