@@ -101,7 +101,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-red-50 to-red-100">
+    <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100">
       <nav className="bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
@@ -179,7 +179,10 @@ export default function AdminDashboard() {
             <p className="text-gray-600 mb-4">
               View and manage user accounts
             </p>
-            <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 cursor-pointer">
+            <button
+              onClick={() => router.push("/admin/users")}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 cursor-pointer"
+            >
               Manage Users
             </button>
           </div>
