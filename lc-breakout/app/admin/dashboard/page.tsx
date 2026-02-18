@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import StatCard from "../components/StatCard";
+import DashboardCard from "../components/DashboardCard";
+import CheckoutCard from "../components/CheckoutCard";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -102,13 +105,13 @@ export default function AdminDashboard() {
 
   return (
     <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100">
-      <nav className="bg-white shadow-md">
+      <nav className="bg-white shadow-md border-b border-red-100">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
           <button
             onClick={handleLogout}
             disabled={isLoading}
-            className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 cursor-pointer disabled:cursor-not-allowed"
+            className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform disabled:cursor-not-allowed disabled:transform-none"
           >
             {isLoading ? "Logging out..." : "Logout"}
           </button>
@@ -117,33 +120,51 @@ export default function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <p className="text-sm font-semibold text-gray-500">Current Period</p>
-            <h2 className="text-2xl font-bold text-gray-900 mt-2">
-              {currentPeriod ? currentPeriod.label : "No active period"}
-            </h2>
-            <p className="text-gray-600 mt-2">
-              {currentPeriod
+          <StatCard
+            label="Current Period"
+            value={currentPeriod ? currentPeriod.label : "No active period"}
+            subtitle={
+              currentPeriod
                 ? `${currentPeriod.start} - ${currentPeriod.end}`
-                : "Outside scheduled periods"}
-            </p>
-          </div>
+                : "Outside scheduled periods"
+            }
+            variant={currentPeriod ? "highlight" : "default"}
+          />
 
-          <div className="bg-white rounded-lg shadow-lg p-6 lg:col-span-2">
-            <div className="flex items-center justify-between">
+          <div className="bg-white rounded-lg shadow-lg p-6 lg:col-span-2 hover:shadow-xl transition-shadow duration-200">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-900">Rooms to Check Out</h2>
-              <span className="text-sm text-gray-500">{todayKey}</span>
+              <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                {todayKey}
+              </span>
             </div>
             {checkoutRooms.length === 0 ? (
-              <p className="text-gray-600 mt-4">No checkouts scheduled for this period.</p>
+              <div className="text-center py-6">
+                <svg
+                  className="w-12 h-12 text-gray-400 mx-auto mb-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="text-gray-600">No checkouts scheduled for this period.</p>
+              </div>
             ) : (
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {checkoutRooms.map((room) => (
-                  <div key={room.id} className="border border-red-100 rounded-lg p-4">
-                    <p className="text-sm font-semibold text-gray-500">{room.room}</p>
-                    <p className="text-lg font-bold text-gray-900 mt-1">{room.guestName}</p>
-                    <p className="text-sm text-red-600 mt-2">Checkout by {room.endTime}</p>
-                  </div>
+                  <CheckoutCard
+                    key={room.id}
+                    room={room.room}
+                    guestName={room.guestName}
+                    endTime={room.endTime}
+                  />
                 ))}
               </div>
             )}
@@ -151,66 +172,52 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Welcome Card */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Welcome</h2>
-            <p className="text-gray-600">
-              You are now logged in as an administrator
-            </p>
-          </div>
+          <DashboardCard title="Welcome" description="You are now logged in as an administrator" />
 
-          {/* Breakout Rooms Management */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Breakout Rooms</h2>
-            <p className="text-gray-600 mb-4">
-              Manage LC breakout room settings and reservations
-            </p>
-            <button
-              onClick={() => router.push("/admin/manage-rooms")}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 cursor-pointer"
-            >
-              Manage Rooms
-            </button>
-          </div>
+          <DashboardCard
+            title="Breakout Rooms"
+            description="Manage LC breakout room settings and reservations"
+            action={{
+              label: "Manage Rooms",
+              onClick: () => router.push("/admin/manage-rooms"),
+            }}
+          />
 
-          {/* Users Management */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Users</h2>
-            <p className="text-gray-600 mb-4">
-              View and manage user accounts
-            </p>
-            <button
-              onClick={() => router.push("/admin/users")}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 cursor-pointer"
-            >
-              Manage Users
-            </button>
-          </div>
+          <DashboardCard
+            title="Users"
+            description="View and manage user accounts"
+            action={{
+              label: "Manage Users",
+              onClick: () => router.push("/admin/users"),
+            }}
+          />
 
-          {/* Reports */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Reports</h2>
-            <p className="text-gray-600 mb-4">
-              View usage history and statistics
-            </p>
-            <button
-              onClick={() => router.push("/admin/reports")}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 cursor-pointer"
-            >
-              View Reports
-            </button>
-          </div>
+          <DashboardCard
+            title="Reservations"
+            description="Create and manage room reservations"
+            action={{
+              label: "View Reservations",
+              onClick: () => router.push("/admin/reservations"),
+            }}
+          />
 
-          {/* Settings */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Settings</h2>
-            <p className="text-gray-600 mb-4">
-              Configure system settings
-            </p>
-            <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 cursor-pointer">
-              Go to Settings
-            </button>
-          </div>
+          <DashboardCard
+            title="Reports"
+            description="View usage history and statistics"
+            action={{
+              label: "View Reports",
+              onClick: () => router.push("/admin/reports"),
+            }}
+          />
+
+          <DashboardCard
+            title="Settings"
+            description="Configure system settings"
+            action={{
+              label: "Go to Settings",
+              onClick: () => alert("Settings page coming soon!"),
+            }}
+          />
         </div>
       </div>
     </main>

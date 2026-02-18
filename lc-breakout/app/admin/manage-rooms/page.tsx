@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import PageHeader from "../components/PageHeader";
+import RoomCard from "../components/RoomCard";
 
 interface Person {
   id: string;
@@ -48,76 +50,40 @@ export default function ManageRooms() {
     },
   ]);
 
+  const handleRemovePerson = (roomId: string) => {
+    setRooms((prevRooms) =>
+      prevRooms.map((prevRoom) =>
+        prevRoom.id === roomId ? { ...prevRoom, people: [] } : prevRoom
+      )
+    );
+  };
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-red-50 to-red-100">
-      <nav className="bg-white shadow-md border-b border-red-100">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.back()}
-              className="text-red-600 hover:text-red-800 font-semibold transition duration-200"
-            >
-              ← Back
-            </button>
-            <h1 className="text-2xl font-bold text-gray-900">Manage Breakout Rooms</h1>
-          </div>
-        </div>
-      </nav>
+    <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100">
+      <PageHeader title="Manage Breakout Rooms" />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {rooms.map((room) => (
-            <div key={room.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
-                <h2 className="text-xl font-bold text-white">{room.name}</h2>
-              </div>
-
-              <div className="px-6 py-4">
-                {room.people.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">No reservation for this room</p>
-                ) : (
-                  <div className="flex items-start justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">{room.people[0].name}</p>
-                      <p className="text-gray-600 text-sm">{room.people[0].email}</p>
-                      <p className="text-gray-500 text-xs mt-1">
-                        Check-in: {room.people[0].checkInTime}
-                      </p>
-                    </div>
-                    <button
-                      className="ml-2 px-3 py-1 text-red-600 hover:bg-red-100 rounded transition duration-200 text-sm"
-                      onClick={() => {
-                        setRooms((prevRooms) =>
-                          prevRooms.map((prevRoom) =>
-                            prevRoom.id === room.id
-                              ? { ...prevRoom, people: [] }
-                              : prevRoom
-                          )
-                        );
-                      }}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+            <RoomCard key={room.id} room={room} onRemovePerson={handleRemovePerson} />
           ))}
         </div>
 
-        <div className="mt-8 bg-white rounded-lg shadow-lg p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">Booking Calendar & Reservations</h3>
-            <p className="text-gray-600 mt-1">
-              Create reservations, view bookings, and manage upcoming reservations.
-            </p>
+        <div className="mt-8 bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-200">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-900">Booking Calendar & Reservations</h3>
+              <p className="text-gray-600 mt-1">
+                Create reservations, view bookings, and manage upcoming reservations.
+              </p>
+            </div>
+            <button
+              onClick={() => router.push("/admin/reservations")}
+              className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform"
+            >
+              Open Booking Center
+            </button>
           </div>
-          <button
-            onClick={() => router.push("/admin/reservations")}
-            className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200"
-          >
-            Open Booking Center
-          </button>
         </div>
       </div>
     </main>

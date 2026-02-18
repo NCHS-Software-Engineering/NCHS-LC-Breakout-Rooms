@@ -2,6 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import PageHeader from "../components/PageHeader";
+import ReservationCard from "../components/ReservationCard";
+import EmptyState from "../components/EmptyState";
 
 interface Reservation {
   id: string;
@@ -155,28 +158,16 @@ export default function ReservationsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-red-50 to-red-100">
-      <nav className="bg-white shadow-md border-b border-red-100">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.back()}
-              className="text-red-600 hover:text-red-800 font-semibold transition duration-200"
-            >
-              ← Back
-            </button>
-            <h1 className="text-2xl font-bold text-gray-900">Booking Calendar & Reservations</h1>
-          </div>
-        </div>
-      </nav>
+    <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100">
+      <PageHeader title="Booking Calendar & Reservations" />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="px-6 py-4 bg-gradient-to-r from-red-600 to-red-700 flex justify-between items-center">
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
+          <div className="px-6 py-4 bg-linear-to-r from-red-600 to-red-700 flex justify-between items-center">
             <h3 className="text-lg font-bold text-white">Booking Calendar</h3>
             <button
               onClick={() => setShowCalendar(!showCalendar)}
-              className="px-4 py-2 bg-white text-red-600 font-semibold rounded transition duration-200 hover:bg-red-50"
+              className="px-4 py-2 bg-white text-red-600 font-semibold rounded transition duration-200 hover:bg-red-50 shadow-md hover:shadow-lg active:scale-95 transform"
             >
               {showCalendar ? "Hide Calendar" : "View Calendar"}
             </button>
@@ -186,11 +177,11 @@ export default function ReservationsPage() {
             <div className="p-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
-                  <div className="bg-gray-50 rounded-lg p-6">
+                  <div className="bg-linear-to-br from-gray-50 to-white rounded-lg p-6 shadow-inner">
                     <div className="flex justify-between items-center mb-6">
                       <button
                         onClick={previousMonth}
-                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold transition duration-200"
+                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform"
                       >
                         ← Previous
                       </button>
@@ -202,7 +193,7 @@ export default function ReservationsPage() {
                       </h4>
                       <button
                         onClick={nextMonth}
-                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold transition duration-200"
+                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform"
                       >
                         Next →
                       </button>
@@ -212,7 +203,7 @@ export default function ReservationsPage() {
                       {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                         <div
                           key={day}
-                          className="text-center font-bold text-gray-700 py-2"
+                          className="text-center font-bold text-gray-700 py-2 bg-gray-100 rounded"
                         >
                           {day}
                         </div>
@@ -229,9 +220,9 @@ export default function ReservationsPage() {
                         return (
                           <div
                             key={day}
-                            className={`aspect-square p-2 rounded-lg border-2 text-center flex flex-col justify-between cursor-pointer transition duration-200 hover:shadow-md ${
+                            className={`aspect-square p-2 rounded-lg border-2 text-center flex flex-col justify-between cursor-pointer transition-all duration-200 hover:shadow-md ${
                               hasReservations
-                                ? "bg-red-100 border-red-500"
+                                ? "bg-red-100 border-red-500 hover:bg-red-200"
                                 : "bg-white border-gray-200 hover:border-red-400"
                             }`}
                             onClick={() => {
@@ -253,7 +244,7 @@ export default function ReservationsPage() {
                     </div>
 
                     {newReservation.date && (
-                      <div className="mt-6 p-4 bg-white border-2 border-red-200 rounded-lg">
+                      <div className="mt-6 p-4 bg-white border-2 border-red-200 rounded-lg shadow-sm">
                         <h5 className="font-bold text-gray-900 mb-3">
                           Reservations for {new Date(newReservation.date).toLocaleDateString()}
                         </h5>
@@ -282,7 +273,7 @@ export default function ReservationsPage() {
                 </div>
 
                 <div>
-                  <div className="bg-red-50 rounded-lg p-6 border-2 border-red-200">
+                  <div className="bg-linear-to-br from-red-50 to-white rounded-lg p-6 border-2 border-red-200 shadow-md">
                     <h5 className="text-lg font-bold text-gray-900 mb-4">
                       Create New Reservation
                     </h5>
@@ -306,7 +297,7 @@ export default function ReservationsPage() {
                               guestName: e.target.value,
                             })
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
                           placeholder="John Doe"
                         />
                       </div>
@@ -324,7 +315,7 @@ export default function ReservationsPage() {
                               email: e.target.value,
                             })
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
                           placeholder="john@example.com"
                         />
                       </div>
@@ -341,7 +332,7 @@ export default function ReservationsPage() {
                               roomNumber: e.target.value,
                             })
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
                         >
                           <option value="1">Room 1</option>
                           <option value="2">Room 2</option>
@@ -362,44 +353,46 @@ export default function ReservationsPage() {
                               date: e.target.value,
                             })
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
                         />
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                          Start Time
-                        </label>
-                        <input
-                          type="text"
-                          value={newReservation.startTime}
-                          onChange={(e) =>
-                            setNewReservation({
-                              ...newReservation,
-                              startTime: e.target.value,
-                            })
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                          placeholder="10:00 AM"
-                        />
-                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-1">
+                            Start Time
+                          </label>
+                          <input
+                            type="text"
+                            value={newReservation.startTime}
+                            onChange={(e) =>
+                              setNewReservation({
+                                ...newReservation,
+                                startTime: e.target.value,
+                              })
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
+                            placeholder="10:00 AM"
+                          />
+                        </div>
 
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                          End Time
-                        </label>
-                        <input
-                          type="text"
-                          value={newReservation.endTime}
-                          onChange={(e) =>
-                            setNewReservation({
-                              ...newReservation,
-                              endTime: e.target.value,
-                            })
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                          placeholder="11:00 AM"
-                        />
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-1">
+                            End Time
+                          </label>
+                          <input
+                            type="text"
+                            value={newReservation.endTime}
+                            onChange={(e) =>
+                              setNewReservation({
+                                ...newReservation,
+                                endTime: e.target.value,
+                              })
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
+                            placeholder="11:00 AM"
+                          />
+                        </div>
                       </div>
 
                       <div>
@@ -416,13 +409,13 @@ export default function ReservationsPage() {
                               groupSize: e.target.value,
                             })
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
                         />
                       </div>
 
                       <button
                         type="submit"
-                        className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200 mt-6"
+                        className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200 mt-6 shadow-md hover:shadow-lg active:scale-95 transform"
                       >
                         Create Reservation
                       </button>
@@ -434,116 +427,85 @@ export default function ReservationsPage() {
           )}
         </div>
 
-        <div className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="px-6 py-4 bg-gradient-to-r from-red-600 to-red-700 flex justify-between items-center">
+        <div className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
+          <div className="px-6 py-4 bg-linear-to-r from-red-600 to-red-700 flex justify-between items-center">
             <h3 className="text-lg font-bold text-white">Upcoming Reservations</h3>
             <button
               onClick={() => setShowSchedule(!showSchedule)}
-              className="px-4 py-2 bg-white text-red-600 font-semibold rounded transition duration-200 hover:bg-red-50"
+              className="px-4 py-2 bg-white text-red-600 font-semibold rounded transition duration-200 hover:bg-red-50 shadow-md hover:shadow-lg active:scale-95 transform"
             >
               {showSchedule ? "Hide Schedule" : "View Full Schedule"}
             </button>
           </div>
 
           {reservations.length === 0 ? (
-            <div className="px-6 py-8 text-center text-gray-500">
-              <p>No upcoming reservations</p>
+            <div className="p-8">
+              <EmptyState message="No upcoming reservations" />
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-100 border-b">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                      Room
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                      Guest Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                      Time
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                      Group Size
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reservations.map((reservation) => (
-                    <tr
-                      key={reservation.id}
-                      className="border-b hover:bg-gray-50 transition duration-200"
-                    >
-                      <td className="px-6 py-3">
-                        <span className="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-semibold">
-                          Room {reservation.roomNumber}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3 text-sm font-semibold text-gray-900">
-                        {reservation.guestName}
-                      </td>
-                      <td className="px-6 py-3 text-sm text-gray-600">{reservation.email}</td>
-                      <td className="px-6 py-3 text-sm text-gray-600">
-                        {new Date(reservation.date).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-3 text-sm text-gray-600">
-                        {reservation.startTime} - {reservation.endTime}
-                      </td>
-                      <td className="px-6 py-3 text-sm font-semibold text-gray-900">
-                        {reservation.groupSize} people
-                      </td>
-                      <td className="px-6 py-3">
-                        <button
-                          onClick={() =>
-                            removeReservation(reservation.id, reservation.guestName)
-                          }
-                          className="px-3 py-1 text-red-600 hover:bg-red-100 rounded transition duration-200 text-sm font-semibold"
-                        >
-                          Cancel
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="p-6 space-y-4">
+              {reservations.map((reservation) => (
+                <ReservationCard
+                  key={reservation.id}
+                  reservation={reservation}
+                  onRemove={removeReservation}
+                />
+              ))}
             </div>
           )}
         </div>
 
-        {showSchedule && (
-          <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
+        {showSchedule && reservations.length > 0 && (
+          <div className="mt-8 bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-200">
             <h3 className="text-lg font-bold text-gray-900 mb-6">Complete Upcoming Schedule</h3>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {[1, 2, 3].map((roomNum) => {
                 const roomReservations = reservations.filter((r) => r.roomNumber === roomNum);
                 return (
-                  <div key={roomNum} className="border border-gray-300 rounded-lg p-4">
-                    <h4 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b">
-                      Room {roomNum}
-                    </h4>
+                  <div
+                    key={roomNum}
+                    className="border-2 border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors duration-200"
+                  >
+                    <div className="flex items-center gap-2 mb-4 pb-2 border-b-2 border-red-500">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600 font-bold">
+                        {roomNum}
+                      </span>
+                      <h4 className="text-lg font-bold text-gray-900">Room {roomNum}</h4>
+                    </div>
                     {roomReservations.length === 0 ? (
-                      <p className="text-gray-500 text-center py-4">No reservations</p>
+                      <div className="text-center py-8">
+                        <svg
+                          className="w-12 h-12 text-gray-400 mx-auto mb-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <p className="text-gray-500 text-sm">No reservations</p>
+                      </div>
                     ) : (
                       <div className="space-y-3">
                         {roomReservations.map((reservation) => (
                           <div
                             key={reservation.id}
-                            className="p-3 bg-red-50 border border-red-200 rounded"
+                            className="p-3 bg-red-50 border border-red-200 rounded hover:bg-red-100 transition-colors duration-200"
                           >
                             <p className="font-semibold text-gray-900">
                               {reservation.guestName}
                             </p>
                             <p className="text-sm text-gray-600">
-                              {new Date(reservation.date).toLocaleDateString()}
+                              {new Date(reservation.date).toLocaleDateString("en-US", {
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
+                              })}
                             </p>
                             <p className="text-sm text-gray-600">
                               {reservation.startTime} - {reservation.endTime}
@@ -555,7 +517,7 @@ export default function ReservationsPage() {
                               onClick={() =>
                                 removeReservation(reservation.id, reservation.guestName)
                               }
-                              className="mt-2 w-full px-2 py-1 text-red-600 hover:bg-red-100 rounded transition duration-200 text-xs font-semibold"
+                              className="mt-2 w-full px-2 py-1 text-red-600 hover:bg-red-200 rounded transition duration-200 text-xs font-semibold"
                             >
                               Cancel Reservation
                             </button>
