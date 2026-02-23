@@ -1,10 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import PageHeader from "../components/PageHeader";
-import FilterSection from "../components/FilterSection";
-import EmptyState from "../components/EmptyState";
+import UsageHistoryTable from "../components/UsageHistoryTable";
 
 interface HistoryEntry {
   id: string;
@@ -12,10 +11,10 @@ interface HistoryEntry {
   email: string;
   room: string;
   roomNumber: number;
-  checkInTime: string;
-  checkOutTime: string | null;
   date: string;
-  duration: number; // in minutes
+  period: string;
+  startTime: string;
+  endTime: string;
 }
 
 export default function Reports() {
@@ -23,142 +22,164 @@ export default function Reports() {
 
   // Mock data for all-time room usage history
   const [historyData] = useState<HistoryEntry[]>([
-    { id: "h1", name: "John Doe", email: "john.doe@email.com", room: "Room 1", roomNumber: 1, checkInTime: "10:30 AM", checkOutTime: "11:45 AM", date: "2024-02-10", duration: 75 },
-    { id: "h2", name: "Jane Smith", email: "jane.smith@email.com", room: "Room 1", roomNumber: 1, checkInTime: "10:32 AM", checkOutTime: "12:00 PM", date: "2024-02-10", duration: 88 },
-    { id: "h3", name: "Bob Johnson", email: "bob.johnson@email.com", room: "Room 2", roomNumber: 2, checkInTime: "10:35 AM", checkOutTime: "11:20 AM", date: "2024-02-10", duration: 45 },
-    { id: "h4", name: "Alice Williams", email: "alice.williams@email.com", room: "Room 3", roomNumber: 3, checkInTime: "10:31 AM", checkOutTime: "11:50 AM", date: "2024-02-10", duration: 79 },
-    { id: "h5", name: "Charlie Brown", email: "charlie.brown@email.com", room: "Room 2", roomNumber: 2, checkInTime: "10:33 AM", checkOutTime: "11:15 AM", date: "2024-02-10", duration: 42 },
-    { id: "h6", name: "Diana Prince", email: "diana.prince@email.com", room: "Room 1", roomNumber: 1, checkInTime: "11:00 AM", checkOutTime: "12:30 PM", date: "2024-02-10", duration: 90 },
-    { id: "h7", name: "Edward Norton", email: "edward.norton@email.com", room: "Room 3", roomNumber: 3, checkInTime: "10:30 AM", checkOutTime: "11:45 AM", date: "2024-02-10", duration: 75 },
-    { id: "h8", name: "Fiona Green", email: "fiona.green@email.com", room: "Room 2", roomNumber: 2, checkInTime: "11:15 AM", checkOutTime: "12:45 PM", date: "2024-02-10", duration: 90 },
-    { id: "h9", name: "George Miller", email: "george.miller@email.com", room: "Room 1", roomNumber: 1, checkInTime: "09:30 AM", checkOutTime: "10:15 AM", date: "2024-02-09", duration: 45 },
-    { id: "h10", name: "Helen White", email: "helen.white@email.com", room: "Room 3", roomNumber: 3, checkInTime: "02:00 PM", checkOutTime: "03:30 PM", date: "2024-02-09", duration: 90 },
-    { id: "h11", name: "John Doe", email: "john.doe@email.com", room: "Room 2", roomNumber: 2, checkInTime: "01:00 PM", checkOutTime: "02:00 PM", date: "2024-02-09", duration: 60 },
-    { id: "h12", name: "Ivan Black", email: "ivan.black@email.com", room: "Room 1", roomNumber: 1, checkInTime: "03:00 PM", checkOutTime: "04:15 PM", date: "2024-02-08", duration: 75 },
+    { id: "h1", name: "John Doe", email: "john.doe@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-23", period: "Period 2", startTime: "8:41 AM", endTime: "9:34 AM" },
+    { id: "h2", name: "Jane Smith", email: "jane.smith@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-23", period: "Period 4", startTime: "10:36 AM", endTime: "11:26 AM" },
+    { id: "h3", name: "Bob Johnson", email: "bob.johnson@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-23", period: "Period 3", startTime: "9:40 AM", endTime: "10:30 AM" },
+    { id: "h4", name: "Alice Williams", email: "alice.williams@email.com", room: "Room 3", roomNumber: 3, date: "2026-02-23", period: "Period 5", startTime: "11:32 AM", endTime: "12:22 PM" },
+    { id: "h5", name: "Charlie Brown", email: "charlie.brown@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-23", period: "Period 6", startTime: "12:28 PM", endTime: "1:18 PM" },
+    { id: "h6", name: "Diana Prince", email: "diana.prince@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-23", period: "Period 7", startTime: "1:24 PM", endTime: "2:14 PM" },
+    { id: "h7", name: "Edward Norton", email: "edward.norton@email.com", room: "Room 3", roomNumber: 3, date: "2026-02-23", period: "Period 8", startTime: "2:20 PM", endTime: "3:10 PM" },
+    { id: "h8", name: "Fiona Green", email: "fiona.green@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-23", period: "Period 1", startTime: "7:45 AM", endTime: "8:35 AM" },
+    { id: "h9", name: "George Miller", email: "george.miller@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-22", period: "Period 3", startTime: "9:40 AM", endTime: "10:30 AM" },
+    { id: "h10", name: "Helen White", email: "helen.white@email.com", room: "Room 3", roomNumber: 3, date: "2026-02-22", period: "Period 5", startTime: "11:32 AM", endTime: "12:22 PM" },
+    { id: "h11", name: "John Doe", email: "john.doe@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-22", period: "Period 2", startTime: "8:41 AM", endTime: "9:34 AM" },
+    { id: "h12", name: "Ivan Black", email: "ivan.black@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-21", period: "Period 4", startTime: "10:36 AM", endTime: "11:26 AM" },
+    { id: "h13", name: "Julia Roberts", email: "julia.roberts@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-21", period: "Period 6", startTime: "12:28 PM", endTime: "1:18 PM" },
+    { id: "h14", name: "Kevin Hart", email: "kevin.hart@email.com", room: "Room 3", roomNumber: 3, date: "2026-02-21", period: "Period 7", startTime: "1:24 PM", endTime: "2:14 PM" },
+    { id: "h15", name: "Lisa Wong", email: "lisa.wong@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-20", period: "Period 1", startTime: "7:45 AM", endTime: "8:35 AM" },
   ]);
 
-  const [searchName, setSearchName] = useState("");
-  const [searchRoom, setSearchRoom] = useState("");
-  const [searchDate, setSearchDate] = useState("");
-  const [sortBy, setSortBy] = useState<"date" | "name" | "room">("date");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 1, 23));
+  const [selectedDate, setSelectedDate] = useState("2026-02-23");
 
-  // Filter and sort the data
-  const filteredAndSortedData = useMemo(() => {
-    let filtered = historyData.filter((entry) => {
-      const nameMatch = entry.name.toLowerCase().includes(searchName.toLowerCase()) ||
-                       entry.email.toLowerCase().includes(searchName.toLowerCase());
-      const roomMatch = searchRoom === "" || entry.roomNumber.toString() === searchRoom;
-      const dateMatch = searchDate === "" || entry.date === searchDate;
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
 
-      return nameMatch && roomMatch && dateMatch;
-    });
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
 
-    filtered.sort((a, b) => {
-      let compareValue = 0;
+  const previousMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
+  };
 
-      if (sortBy === "name") {
-        compareValue = a.name.localeCompare(b.name);
-      } else if (sortBy === "room") {
-        compareValue = a.roomNumber - b.roomNumber;
-      } else if (sortBy === "date") {
-        compareValue = new Date(a.date).getTime() - new Date(b.date).getTime();
-      }
+  const nextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+  };
 
-      return sortOrder === "asc" ? compareValue : -compareValue;
-    });
+  const formatDateForCalendar = (day: number) => {
+    return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  };
 
-    return filtered;
-  }, [historyData, searchName, searchRoom, searchDate, sortBy, sortOrder]);
+  const getHistoryForDate = (date: string) => {
+    return historyData.filter((entry) => entry.date === date);
+  };
 
   return (
     <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100">
       <PageHeader title="Room Usage Reports" />
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <FilterSection
-          searchName={searchName}
-          searchRoom={searchRoom}
-          searchDate={searchDate}
-          sortBy={sortBy}
-          sortOrder={sortOrder}
-          onSearchNameChange={setSearchName}
-          onSearchRoomChange={setSearchRoom}
-          onSearchDateChange={setSearchDate}
-          onSortByChange={setSortBy}
-          onSortOrderChange={setSortOrder}
-          onClearFilters={() => {
-            setSearchName("");
-            setSearchRoom("");
-            setSearchDate("");
-          }}
-        />
-
-        <div className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
           <div className="px-6 py-4 bg-linear-to-r from-red-600 to-red-700">
-            <h2 className="text-lg font-bold text-white">
-              Usage History ({filteredAndSortedData.length} records)
-            </h2>
+            <h3 className="text-lg font-bold text-white">Browse Usage by Date</h3>
           </div>
 
-          <div className="overflow-x-auto">
-            {filteredAndSortedData.length === 0 ? (
-              <div className="p-8">
-                <EmptyState message="No records found. Try adjusting your filters." />
+          <div className="p-6">
+            <div className="bg-linear-to-br from-gray-50 to-white rounded-lg p-6 shadow-inner">
+              <div className="flex justify-between items-center mb-6">
+                <button
+                  onClick={previousMonth}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform cursor-pointer"
+                >
+                  ← Previous
+                </button>
+                <h4 className="text-xl font-bold text-gray-900">
+                  {currentDate.toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </h4>
+                <button
+                  onClick={nextMonth}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform cursor-pointer"
+                >
+                  Next →
+                </button>
               </div>
-            ) : (
-              <table className="w-full">
-                <thead className="bg-gray-100 border-b">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                      Room
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredAndSortedData.map((entry) => (
-                    <tr
-                      key={entry.id}
-                      className="border-b hover:bg-gray-50 transition-colors duration-200"
+
+              <div className="grid grid-cols-7 gap-2">
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                  <div
+                    key={day}
+                    className="text-center font-bold text-gray-700 py-2 bg-gray-100 rounded"
+                  >
+                    {day}
+                  </div>
+                ))}
+                {Array.from({ length: getFirstDayOfMonth(currentDate) }).map((_, i) => (
+                  <div key={`empty-${i}`} className="aspect-square"></div>
+                ))}
+                {Array.from({ length: getDaysInMonth(currentDate) }).map((_, i) => {
+                  const day = i + 1;
+                  const dateStr = formatDateForCalendar(day);
+                  const dayHistory = getHistoryForDate(dateStr);
+                  const hasHistory = dayHistory.length > 0;
+                  const isSelected = selectedDate === dateStr;
+
+                  return (
+                    <div
+                      key={day}
+                      className={`aspect-square p-2 rounded-lg border-2 text-center flex flex-col justify-between cursor-pointer transition-all duration-200 hover:shadow-md ${
+                        isSelected
+                          ? "bg-red-600 border-red-700 text-white"
+                          : hasHistory
+                          ? "bg-red-100 border-red-500 hover:bg-red-200"
+                          : "bg-white border-gray-200 hover:border-red-400"
+                      }`}
+                      onClick={() => setSelectedDate(dateStr)}
                     >
-                      <td className="px-6 py-3 text-sm text-gray-900 font-semibold">
-                        {entry.name}
-                      </td>
-                      <td className="px-6 py-3 text-sm text-gray-600">{entry.email}</td>
-                      <td className="px-6 py-3">
-                        <span className="inline-flex items-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-semibold">
-                          {entry.room}
+                      <span
+                        className={`font-semibold text-sm ${
+                          isSelected ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        {day}
+                      </span>
+                      {hasHistory && !isSelected && (
+                        <span className="text-xs font-bold text-red-700 bg-red-200 rounded px-1">
+                          {dayHistory.length} use
+                          {dayHistory.length > 1 ? "s" : ""}
                         </span>
-                      </td>
-                      <td className="px-6 py-3 text-sm text-gray-600">
-                        {new Date(entry.date).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                      )}
+                      {isSelected && (
+                        <span className="text-xs font-bold text-red-100">
+                          {dayHistory.length} use
+                          {dayHistory.length > 1 ? "s" : ""}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
 
+        {selectedDate && (
+          <div className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
+            <div className="px-6 py-4 bg-linear-to-r from-red-600 to-red-700">
+              <h3 className="text-lg font-bold text-white">
+                Usage History for {new Date(selectedDate).toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </h3>
+            </div>
+            <div className="p-6">
+              <UsageHistoryTable selectedDate={selectedDate} historyData={historyData} />
+            </div>
+          </div>
+        )}
+
         <div className="mt-8 flex justify-end gap-4">
-          <button className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold rounded-lg transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform">
+          <button className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold rounded-lg transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform cursor-pointer">
             Download CSV
           </button>
-          <button className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform">
+          <button className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform cursor-pointer">
             Print Report
           </button>
         </div>

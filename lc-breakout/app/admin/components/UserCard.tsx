@@ -85,7 +85,7 @@ export default function UserCard({ user, onSetCooldown }: UserCardProps) {
 
           <button
             onClick={handleSetCooldown}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform"
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform cursor-pointer"
           >
             Set Cooldown
           </button>

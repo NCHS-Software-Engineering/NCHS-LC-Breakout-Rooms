@@ -9,14 +9,12 @@ interface Person {
   id: string;
   name: string;
   email: string;
-  checkInTime: string;
 }
 
 interface Room {
   id: string;
   name: string;
-  capacity: number;
-  people: Person[];
+  currentOccupant?: Person | null;
 }
 
 export default function ManageRooms() {
@@ -27,33 +25,24 @@ export default function ManageRooms() {
     {
       id: "room1",
       name: "Room 1",
-      capacity: 6,
-      people: [
-        { id: "p1", name: "John Doe", email: "john.doe@email.com", checkInTime: "10:30 AM" },
-      ],
+      currentOccupant: { id: "p1", name: "John Doe", email: "john.doe@email.com" },
     },
     {
       id: "room2",
       name: "Room 2",
-      capacity: 6,
-      people: [
-        { id: "p4", name: "Alice Williams", email: "alice.williams@email.com", checkInTime: "10:31 AM" },
-      ],
+      currentOccupant: { id: "p4", name: "Alice Williams", email: "alice.williams@email.com" },
     },
     {
       id: "room3",
       name: "Room 3",
-      capacity: 6,
-      people: [
-        { id: "p6", name: "Diana Prince", email: "diana.prince@email.com", checkInTime: "10:28 AM" },
-      ],
+      currentOccupant: { id: "p6", name: "Diana Prince", email: "diana.prince@email.com" },
     },
   ]);
 
   const handleRemovePerson = (roomId: string) => {
     setRooms((prevRooms) =>
       prevRooms.map((prevRoom) =>
-        prevRoom.id === roomId ? { ...prevRoom, people: [] } : prevRoom
+        prevRoom.id === roomId ? { ...prevRoom, currentOccupant: null } : prevRoom
       )
     );
   };
@@ -79,7 +68,7 @@ export default function ManageRooms() {
             </div>
             <button
               onClick={() => router.push("/admin/reservations")}
-              className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform"
+              className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform cursor-pointer"
             >
               Open Booking Center
             </button>

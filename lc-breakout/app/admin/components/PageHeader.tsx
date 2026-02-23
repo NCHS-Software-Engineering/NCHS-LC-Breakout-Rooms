@@ -16,7 +16,7 @@ export default function PageHeader({ title, showBackButton = true }: PageHeaderP
         {showBackButton && (
           <button
             onClick={() => router.back()}
-            className="text-red-600 hover:text-red-800 font-semibold transition duration-200 flex items-center gap-2 group"
+            className="text-red-600 hover:text-red-800 font-semibold transition duration-200 flex items-center gap-2 group cursor-pointer"
           >
             <svg
               className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-200"
