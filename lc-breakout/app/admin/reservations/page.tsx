@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import PageHeader from "../components/PageHeader";
 import ReservationsTable from "../components/ReservationsTable";
-import EmptyState from "../components/EmptyState";
 
 interface Reservation {
   id: string;
