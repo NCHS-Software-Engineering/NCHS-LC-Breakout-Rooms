@@ -18,7 +18,7 @@ interface Room {
 }
 
 export default function AdminDashboard() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   // Mock data for the 3 breakout rooms
   const [rooms] = useState<Room[]>([
