@@ -17,7 +17,6 @@ interface Reservation {
 }
 
 export default function ReservationsPage() {
-  const router = useRouter();
 
   const [reservations, setReservations] = useState<Reservation[]>([
     {
