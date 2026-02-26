@@ -18,4 +18,10 @@ export const authOptions: NextAuthOptions = {
     session: {
         strategy: "jwt",
     },
+    callbacks: {
+        async session({ session }) {
+            // session.user.email will identify the student
+            return session;
+        }
+    }
 };
