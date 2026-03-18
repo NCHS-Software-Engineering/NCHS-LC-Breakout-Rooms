@@ -26,24 +26,24 @@ export async function GET() {
 
     
     const [rows] = await connection.execute<DBRow[]>(`
-    SELECT 
-        ts.DayOfWeek AS DayNum,
-        ts.PeriodLabel AS PeriodName,
-        ts.StartTime,
-        ts.EndTime,
+        SELECT 
+            ts.DayOfWeek AS DayNum,
+            ts.PeriodLabel AS PeriodName,
+            ts.StartTime,
+            ts.EndTime,
 
-        MAX(CASE WHEN r.RoomID = 1 THEN 1 ELSE 0 END) AS Room1,
-        MAX(CASE WHEN r.RoomID = 2 THEN 1 ELSE 0 END) AS Room2,
-        MAX(CASE WHEN r.RoomID = 3 THEN 1 ELSE 0 END) AS Room3
+            CASE WHEN COUNT(CASE WHEN r.RoomID = 1 THEN 1 END) > 0 THEN 1 ELSE 0 END AS Room1,
+            CASE WHEN COUNT(CASE WHEN r.RoomID = 2 THEN 1 END) > 0 THEN 1 ELSE 0 END AS Room2,
+            CASE WHEN COUNT(CASE WHEN r.RoomID = 3 THEN 1 END) > 0 THEN 1 ELSE 0 END AS Room3
 
-    FROM TimeSlots ts
-    LEFT JOIN Reservations r 
-        ON ts.SlotID = r.SlotID
-        AND r.ReservationDate = CURDATE()
+        FROM TimeSlots ts
+        LEFT JOIN Reservations r 
+            ON ts.SlotID = r.SlotID
+            AND r.ReservationDate = CURDATE()
 
-    GROUP BY ts.SlotID
-    ORDER BY ts.DayOfWeek, ts.PeriodNumber   
-    `)
+        GROUP BY ts.SlotID
+        ORDER BY ts.DayOfWeek, ts.PeriodNumber   
+    `);
 
 
     const days = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
