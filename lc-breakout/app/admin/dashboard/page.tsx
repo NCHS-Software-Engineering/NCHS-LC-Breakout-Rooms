@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DashboardHeader from "../components/DashboardHeader";
 import RoomOccupancySection from "../components/RoomOccupancySection";
 import DashboardGrid from "../components/DashboardGrid";
@@ -18,26 +18,46 @@ interface Room {
 }
 
 export default function AdminDashboard() {
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data for the 3 breakout rooms
-  const [rooms] = useState<Room[]>([
-    {
-      id: "room1",
-      name: "Room 1",
-      currentOccupant: { id: "p1", name: "John Doe", email: "john.doe@email.com" },
-    },
-    {
-      id: "room2",
-      name: "Room 2",
-      currentOccupant: { id: "p4", name: "Alice Williams", email: "alice.williams@email.com" },
-    },
-    {
-      id: "room3",
-      name: "Room 3",
-      currentOccupant: null,
-    },
-  ]);
+  // Fetch room occupancy from API
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/admin/rooms");
+        if (!response.ok) {
+          throw new Error("Failed to fetch room occupancy");
+        }
+        const data = await response.json();
+        
+        // Transform API data to match the Room interface
+        const transformedRooms: Room[] = data.map((room: any) => ({
+          id: `room${room.id}`,
+          name: room.name,
+          currentOccupant: room.currentOccupant 
+            ? { 
+                id: room.currentOccupant, 
+                name: room.currentOccupant, 
+                email: "user@email.com" 
+              }
+            : null,
+        }));
+        
+        setRooms(transformedRooms);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+        console.error("Error fetching rooms:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRooms();
+  }, []);
   return (
     <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100">
       <DashboardHeader isLoading={isLoading} />

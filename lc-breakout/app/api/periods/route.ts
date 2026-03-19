@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import mysql, { RowDataPacket } from "mysql2/promise";
 
 type DBRow = RowDataPacket & {
+  SlotID: number
   DayNum: number
   PeriodName: string
   StartTime: string
@@ -13,9 +14,6 @@ type DBRow = RowDataPacket & {
 
 export async function GET() {
     try {
-
-    
-        
     const connection = await mysql.createPool({
         host: process.env.DB_HOST,
         user: process.env.DB_USER,
@@ -23,10 +21,9 @@ export async function GET() {
         database: process.env.DB_NAME,
     });
 
-
-    
     const [rows] = await connection.execute<DBRow[]>(`
         SELECT 
+            ts.SlotID,
             ts.DayOfWeek AS DayNum,
             ts.PeriodLabel AS PeriodName,
             ts.StartTime,
@@ -45,10 +42,10 @@ export async function GET() {
         ORDER BY ts.DayOfWeek, ts.PeriodNumber   
     `);
 
-
     const days = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
 
     const formatted = rows.map(row => ({
+    SlotID: row.SlotID,
     DayNum: row.DayNum,
     DayName: days[row.DayNum - 1],
     PeriodName: row.PeriodName,
@@ -58,6 +55,8 @@ export async function GET() {
     Room2: Boolean(row.Room2),
     Room3: Boolean(row.Room3),
     }));
+
+    await connection.end();
 
     return NextResponse.json(formatted);
     } catch (error) {

@@ -26,8 +26,8 @@ export default function PeriodRow({
       <td className="border border-black dark:border-gray-300 px-4 py-2">{time}</td>
       <RoomCell
         isVacant={Number(period.Room1) === 0}
-        isSelected={selectedRoom?.periodIndex === index && selectedRoom?.roomNumber === 1}
-        periodIndex={index}
+        isSelected={selectedRoom?.slotID === period.SlotID && selectedRoom?.roomNumber === 1}
+        slotID={period.SlotID}
         roomNumber={1}
         period={period.PeriodName}
         room="Room 1"
@@ -36,8 +36,8 @@ export default function PeriodRow({
       />
       <RoomCell
         isVacant={Number(period.Room2) === 0}
-        isSelected={selectedRoom?.periodIndex === index && selectedRoom?.roomNumber === 2}
-        periodIndex={index}
+        isSelected={selectedRoom?.slotID === period.SlotID && selectedRoom?.roomNumber === 2}
+        slotID={period.SlotID}
         roomNumber={2}
         period={period.PeriodName}
         room="Room 2"
@@ -46,8 +46,8 @@ export default function PeriodRow({
       />
       <RoomCell
         isVacant={Number(period.Room3) === 0}
-        isSelected={selectedRoom?.periodIndex === index && selectedRoom?.roomNumber === 3}
-        periodIndex={index}
+        isSelected={selectedRoom?.slotID === period.SlotID && selectedRoom?.roomNumber === 3}
+        slotID={period.SlotID}
         roomNumber={3}
         period={period.PeriodName}
         room="Room 3"

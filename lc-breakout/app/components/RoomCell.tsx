@@ -5,7 +5,7 @@ import { SelectedRoom } from "@/types";
 interface RoomCellProps {
   isVacant: boolean;
   isSelected: boolean;
-  periodIndex: number;
+  slotID: number;
   roomNumber: number;
   period: string;
   room: string;
@@ -16,7 +16,7 @@ interface RoomCellProps {
 export default function RoomCell({
   isVacant,
   isSelected,
-  periodIndex,
+  slotID,
   roomNumber,
   period,
   room,
@@ -26,7 +26,7 @@ export default function RoomCell({
   const handleClick = () => {
     if (isVacant) {
       onRoomSelect({
-        periodIndex,
+        slotID,
         roomNumber,
         period,
         room,

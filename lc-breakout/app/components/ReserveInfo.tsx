@@ -11,12 +11,13 @@ export default function ReserveInfo() {
   const [selectedDay, setSelectedDay] = useState("");
   const [selectedRoom, setSelectedRoom] = useState<SelectedRoom | null>(null);
 
+  const fetchPeriods = async () => {
+    const res = await fetch("/api/periods");
+    const data = await res.json();
+    setPeriods(data);
+  };
+
   useEffect(() => {
-    async function fetchPeriods() {
-      const res = await fetch("/api/periods");
-      const data = await res.json();
-      setPeriods(data);
-    }
     fetchPeriods();
   }, []);
 
@@ -29,6 +30,13 @@ export default function ReserveInfo() {
     setSelectedRoom(selection);
   };
 
+  const handleReservationSuccess = async () => {
+    // Refresh periods to show updated room availability
+    await fetchPeriods();
+    // Clear selected room
+    setSelectedRoom(null);
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-start">
       <h1 className="text-4xl font-bold">LC Breakout Room Sign-up</h1>
@@ -39,7 +47,7 @@ export default function ReserveInfo() {
 
         {selectedDay && (
           <div className="w-3/4 flex flex-col items-center">
-            <ReservationStatus selectedRoom={selectedRoom} />
+            <ReservationStatus selectedRoom={selectedRoom} onReservationSuccess={handleReservationSuccess} />
             <SelectedRoomDisplay selectedRoom={selectedRoom} />
             <RoomTable
               periods={periods}

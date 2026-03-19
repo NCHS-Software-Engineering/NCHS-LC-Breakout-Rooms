@@ -1,4 +1,5 @@
 export type Period = {
+  SlotID: number;
   DayNum: number;
   DayName: string;
   PeriodName: string;
@@ -10,7 +11,7 @@ export type Period = {
 };
 
 export type SelectedRoom = {
-  periodIndex: number;
+  slotID: number;
   roomNumber: number;
   period: string;
   room: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import ReservationsTable from "../components/ReservationsTable";
 
@@ -16,87 +16,63 @@ interface Reservation {
 }
 
 export default function ReservationsPage() {
-
-  const [reservations, setReservations] = useState<Reservation[]>([
-    {
-      id: "res1",
-      roomId: "room1",
-      roomNumber: 1,
-      guestName: "Michael Scott",
-      email: "michael.scott@email.com",
-      date: "2026-02-11",
-      startTime: "02:00 PM",
-      endTime: "03:30 PM",
-    },
-    {
-      id: "res2",
-      roomId: "room2",
-      roomNumber: 2,
-      guestName: "Pam Beesly",
-      email: "pam.beesly@email.com",
-      date: "2026-02-11",
-      startTime: "03:00 PM",
-      endTime: "04:00 PM",
-    },
-    {
-      id: "res3",
-      roomId: "room3",
-      roomNumber: 3,
-      guestName: "Jim Halpert",
-      email: "jim.halpert@email.com",
-      date: "2026-02-11",
-      startTime: "01:30 PM",
-      endTime: "02:30 PM",
-    },
-    {
-      id: "res4",
-      roomId: "room1",
-      roomNumber: 1,
-      guestName: "Dwight Schrute",
-      email: "dwight.schrute@email.com",
-      date: "2026-02-12",
-      startTime: "10:00 AM",
-      endTime: "11:00 AM",
-    },
-    {
-      id: "res5",
-      roomId: "room2",
-      roomNumber: 2,
-      guestName: "Angela Martin",
-      email: "angela.martin@email.com",
-      date: "2026-02-12",
-      startTime: "02:00 PM",
-      endTime: "03:30 PM",
-    },
-  ]);
-
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showCalendar, setShowCalendar] = useState(true);
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 1, 11));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState("");
 
-  const [newReservation, setNewReservation] = useState({
-    guestName: "",
-    email: "",
-    roomNumber: "1",
-    date: "",
-    startTime: "10:00 AM",
-    endTime: "11:00 AM",
-  });
+  // Fetch reservations from API
+  useEffect(() => {
+    const fetchReservations = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/admin/reservations");
+        if (!response.ok) {
+          throw new Error("Failed to fetch reservations");
+        }
+        const data = await response.json();
+        setReservations(data);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+        console.error("Error fetching reservations:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const removeReservation = (reservationId: string, guestName: string) => {
+    fetchReservations();
+  }, []);
+
+  const removeReservation = async (reservationId: string, guestName: string) => {
     if (
-      window.confirm(`Are you sure you want to cancel the reservation for ${guestName}?`)
+      !window.confirm(`Are you sure you want to cancel the reservation for ${guestName}?`)
     ) {
-      setReservations(reservations.filter((res) => res.id !== reservationId));
-      alert(`Reservation for ${guestName} has been cancelled`);
-    }
-  };
-
-  const handleCreateReservation = () => {
-    if (!newReservation.guestName || !newReservation.email || !newReservation.date) {
-      alert("Please fill in all required fields");
       return;
     }
+
+    try {
+      const response = await fetch("/api/admin/reservations", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reservationID: reservationId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to remove reservation");
+      }
+
+      setReservations(reservations.filter((res) => res.id !== reservationId));
+      alert(`Reservation for ${guestName} has been cancelled`);
+    } catch (err) {
+      alert(`Error: ${err instanceof Error ? err.message : "Failed to remove reservation"}`);
+      console.error("Error removing reservation:", err);
+    }
+  };
 
     const newRes: Reservation = {
       id: `res${Date.now()}`,
