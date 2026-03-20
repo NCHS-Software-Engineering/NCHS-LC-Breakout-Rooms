@@ -19,8 +19,36 @@ export const authOptions: NextAuthOptions = {
         strategy: "jwt",
     },
     callbacks: {
-        async session({ session }) {
-            // session.user.email will identify the student
+        async jwt({ token, user }) {
+            if (user) {
+                const name = user.name || "";
+                const email = user.email || "";
+                
+                // Admin: name is "gottlieb"
+                if (name.toLowerCase().includes("gottlieb")) {
+                    token.role = "admin";
+                }
+                // Teacher: email contains "naperville203" but not "stu.naperville203"
+                else if (email.includes("naperville203") && !email.includes("stu.naperville203")) {
+                    token.role = "teacher";
+                }
+                // Student: email contains "stu.naperville203"
+                else if (email.includes("stu.naperville203")) {
+                    token.role = "student";
+                }
+                
+                token.email = email;
+                token.name = name;
+            }
+            return token;
+        },
+        async session({ session, token }) {
+            // Add role and user info to session
+            if (session.user) {
+                session.user.role = token.role as string;
+                session.user.email = token.email as string;
+                session.user.name = token.name as string;
+            }
             return session;
         }
     }
