@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { SelectedRoom } from "@/types";
 
 interface ReservationStatusProps {
@@ -7,17 +8,53 @@ interface ReservationStatusProps {
 }
 
 export default function ReservationStatus({ selectedRoom }: ReservationStatusProps) {
-  const handleReserve = () => {
-    if (selectedRoom) {
-      alert(`ID: test-id, Room: ${selectedRoom.room}`);
+
+  const { data: session, status } = useSession();
+
+  const handleReserve = async () => {
+  if (!selectedRoom) return;
+
+  if (!session) {
+    alert("You must be logged in.");
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/reservations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: session.user.email, 
+        roomId: selectedRoom.roomNumber,
+        slotId: selectedRoom.slotID,
+        date: selectedRoom.date,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Failed to reserve");
+      return;
     }
-  };
+
+    alert("Reservation successful! User: " + session.user.email + "SlotID: " + selectedRoom.slotID + "Date: " + selectedRoom.date);
+
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
+  }
+};
+
+  
 
   return (
     <div className="flex flex-col items-center bg-red-400 text-black rounded-xl w-50% p-6 shadow-lg mb-4">
       {selectedRoom ? (
         <div className="flex flex-col gap-4 items-center w-full">
-          <div className="text-lg font-semibold">You are logged in as: test-user</div>
+          <div className="text-lg font-semibold">You are logged in as: {session?.user?.name || "not logged in"}</div>
           <button
             onClick={handleReserve}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-pointer hover:bg-blue-700 transition"

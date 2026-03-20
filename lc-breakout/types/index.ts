@@ -15,6 +15,8 @@ export type SelectedRoom = {
   period: string;
   room: string;
   time: string;
+  date: string;
+  slotID: number;
 };
 
 

@@ -32,6 +32,8 @@ export default function PeriodRow({
         period={period.PeriodName}
         room="Room 1"
         time={time}
+        date={selectedRoom?.date || ""}
+        slotID={selectedRoom?.slotID || 0}
         onRoomSelect={onRoomSelect}
       />
       <RoomCell
@@ -42,6 +44,8 @@ export default function PeriodRow({
         period={period.PeriodName}
         room="Room 2"
         time={time}
+        date={selectedRoom?.date || ""}
+        slotID={selectedRoom?.slotID || 0}
         onRoomSelect={onRoomSelect}
       />
       <RoomCell
@@ -52,6 +56,8 @@ export default function PeriodRow({
         period={period.PeriodName}
         room="Room 3"
         time={time}
+        date={selectedRoom?.date || ""}
+        slotID={selectedRoom?.slotID || 0}
         onRoomSelect={onRoomSelect}
       />
     </tr>
