@@ -41,19 +41,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already has a reservation for this slot
-    const [userReservation] = await connection.execute(
-      `SELECT * FROM Reservations WHERE SlotID = ? AND UserID = ? AND ReservationDate = ?`,
-      [slotID, userID, reservationDate]
-    );
-
-    if (Array.isArray(userReservation) && userReservation.length > 0) {
-      return NextResponse.json(
-        { error: "You already have a reservation for this time slot" },
-        { status: 409 }
-      );
-    }
-
     // Create the reservation
     await connection.execute(
       `INSERT INTO Reservations (SlotID, UserID, RoomID, ReservationDate, CreatedAt) 

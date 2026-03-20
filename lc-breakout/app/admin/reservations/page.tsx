@@ -22,6 +22,14 @@ export default function ReservationsPage() {
   const [showCalendar, setShowCalendar] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState("");
+  const [newReservation, setNewReservation] = useState({
+    guestName: "",
+    email: "",
+    roomNumber: "1",
+    date: "",
+    startTime: "10:00 AM",
+    endTime: "11:00 AM",
+  });
 
   // Fetch reservations from API
   useEffect(() => {
@@ -73,6 +81,12 @@ export default function ReservationsPage() {
       console.error("Error removing reservation:", err);
     }
   };
+
+  const handleCreateReservation = () => {
+    if (!newReservation.guestName || !newReservation.email || !newReservation.date) {
+      alert("Please fill in all required fields");
+      return;
+    }
 
     const newRes: Reservation = {
       id: `res${Date.now()}`,
