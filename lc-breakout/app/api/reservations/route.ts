@@ -3,7 +3,8 @@ import mysql from "mysql2/promise";
 
 interface ReservationRequest {
   slotID: number;
-  userID: string;
+  userID?: string;
+  email?: string;
   roomID: number;
   reservationDate: string;
 }
@@ -11,10 +12,11 @@ interface ReservationRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: ReservationRequest = await request.json();
-    const { slotID, userID, roomID, reservationDate } = body;
+    const { slotID, userID, email, roomID, reservationDate } = body;
+    const reservationEmail = email ?? userID;
 
     // Validate input
-    if (!slotID || !userID || !roomID || !reservationDate) {
+    if (!slotID || !reservationEmail || !roomID || !reservationDate) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -43,9 +45,9 @@ export async function POST(request: NextRequest) {
 
     // Create the reservation
     await connection.execute(
-      `INSERT INTO Reservations (SlotID, UserID, RoomID, ReservationDate, CreatedAt) 
+      `INSERT INTO Reservations (SlotID, Email, RoomID, ReservationDate, CreatedAt) 
        VALUES (?, ?, ?, ?, NOW())`,
-      [slotID, userID, roomID, reservationDate]
+      [slotID, reservationEmail, roomID, reservationDate]
     );
 
     await connection.end();
@@ -68,6 +70,8 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const userID = request.nextUrl.searchParams.get("userID");
+    const email = request.nextUrl.searchParams.get("email");
+    const filterEmail = email ?? userID;
 
     const connection = await mysql.createPool({
       host: process.env.DB_HOST,
@@ -77,17 +81,17 @@ export async function GET(request: NextRequest) {
     });
 
     let query = `
-      SELECT r.*, ts.PeriodLabel, ts.StartTime, ts.EndTime, ts.DayOfWeek
+      SELECT r.*, ts.PeriodLabel, TIME_FORMAT(ts.StartTime, '%l:%i %p') as StartTime, TIME_FORMAT(ts.EndTime, '%l:%i %p') as EndTime, ts.DayOfWeek
       FROM Reservations r
       JOIN TimeSlots ts ON r.SlotID = ts.SlotID
       WHERE r.ReservationDate = CURDATE()
     `;
 
-    const params: any[] = [];
+    const params: string[] = [];
 
-    if (userID) {
-      query += ` AND r.UserID = ?`;
-      params.push(userID);
+    if (filterEmail) {
+      query += ` AND r.Email = ?`;
+      params.push(filterEmail);
     }
 
     query += ` ORDER BY ts.DayOfWeek, ts.PeriodNumber`;

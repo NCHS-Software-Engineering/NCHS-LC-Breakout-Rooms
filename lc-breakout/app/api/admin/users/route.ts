@@ -13,19 +13,19 @@ export async function GET(request: NextRequest) {
     });
 
     let query = `
-      SELECT DISTINCT UserID as id, UserID as name
+      SELECT DISTINCT Email as id, SUBSTRING_INDEX(Email, '@', 1) as name
       FROM Reservations
       WHERE ReservationDate >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
     `;
 
-    const params: any[] = [];
+    const params: string[] = [];
 
     if (searchQuery && searchQuery.trim()) {
-      query += ` AND UserID LIKE ?`;
+      query += ` AND Email LIKE ?`;
       params.push(`%${searchQuery}%`);
     }
 
-    query += ` ORDER BY UserID ASC`;
+    query += ` ORDER BY Email ASC`;
 
     const [users] = await connection.execute(query, params);
 
@@ -44,9 +44,10 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userID } = body;
+    const { userID, email } = body;
+    const userEmail = email ?? userID;
 
-    if (!userID) {
+    if (!userEmail) {
       return NextResponse.json(
         { error: "User ID is required" },
         { status: 400 }
@@ -62,8 +63,8 @@ export async function DELETE(request: NextRequest) {
 
     // Delete all reservations for this user
     const result = await connection.execute(
-      `DELETE FROM Reservations WHERE UserID = ?`,
-      [userID]
+      `DELETE FROM Reservations WHERE Email = ?`,
+      [userEmail]
     );
 
     await connection.end();
@@ -71,7 +72,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json(
       { 
         success: true, 
-        message: `Deleted all reservations for user ${userID}`,
+        message: `Deleted all reservations for user ${userEmail}`,
         deletedCount: (result[0] as any).affectedRows
       },
       { status: 200 }

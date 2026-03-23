@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import RoomCard from "../components/RoomCard";
 
@@ -14,37 +14,88 @@ interface Person {
 interface Room {
   id: string;
   name: string;
+  currentReservationID?: number | null;
   currentOccupant?: Person | null;
+}
+
+interface RoomApiResponse {
+  id: number;
+  name: string;
+  currentReservationID: number | null;
+  currentOccupant: string | null;
+  currentOccupantEmail: string | null;
 }
 
 export default function ManageRooms() {
   const router = useRouter();
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data for the 3 breakout rooms
-  const [rooms, setRooms] = useState<Room[]>([
-    {
-      id: "room1",
-      name: "Room 1",
-      currentOccupant: { id: "p1", name: "John Doe", email: "john.doe@email.com" },
-    },
-    {
-      id: "room2",
-      name: "Room 2",
-      currentOccupant: { id: "p4", name: "Alice Williams", email: "alice.williams@email.com" },
-    },
-    {
-      id: "room3",
-      name: "Room 3",
-      currentOccupant: { id: "p6", name: "Diana Prince", email: "diana.prince@email.com" },
-    },
-  ]);
+  const fetchRooms = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/admin/rooms");
+      if (!response.ok) {
+        throw new Error("Failed to fetch room occupancy");
+      }
 
-  const handleRemovePerson = (roomId: string) => {
-    setRooms((prevRooms) =>
-      prevRooms.map((prevRoom) =>
-        prevRoom.id === roomId ? { ...prevRoom, currentOccupant: null } : prevRoom
-      )
-    );
+      const data: RoomApiResponse[] = await response.json();
+      const transformedRooms: Room[] = data.map((room) => ({
+        id: `room${room.id}`,
+        name: room.name,
+        currentReservationID: room.currentReservationID ?? null,
+        currentOccupant: room.currentOccupant
+          ? {
+              id: room.currentOccupant,
+              name: room.currentOccupant,
+              email: room.currentOccupantEmail ?? "user@nchs.local",
+            }
+          : null,
+      }));
+
+      setRooms(transformedRooms);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+      console.error("Error fetching rooms:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  const handleRemovePerson = async (roomId: string, reservationID?: number | null) => {
+    if (!reservationID) {
+      return;
+    }
+
+    if (!window.confirm(`Remove the current reservation from ${roomId}?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/admin/reservations", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reservationID }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to remove reservation");
+      }
+
+      await fetchRooms();
+      alert("Reservation removed successfully.");
+    } catch (err) {
+      alert(`Error: ${err instanceof Error ? err.message : "Failed to remove reservation"}`);
+      console.error("Error removing reservation:", err);
+    }
   };
 
   return (
@@ -52,6 +103,9 @@ export default function ManageRooms() {
       <PageHeader title="Manage Breakout Rooms" />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
+        {isLoading && <p className="mb-6 text-gray-700">Loading room occupancy...</p>}
+        {error && <p className="mb-6 text-red-600">{error}</p>}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {rooms.map((room) => (
             <RoomCard key={room.id} room={room} onRemovePerson={handleRemovePerson} />

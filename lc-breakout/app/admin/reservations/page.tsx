@@ -15,6 +15,15 @@ interface Reservation {
   endTime: string;
 }
 
+interface PeriodOption {
+  SlotID: number;
+  DayNum: number;
+  DayName: string;
+  PeriodName: string;
+  StartTime: string;
+  EndTime: string;
+}
+
 export default function ReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,36 +31,52 @@ export default function ReservationsPage() {
   const [showCalendar, setShowCalendar] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState("");
+  const [periodOptions, setPeriodOptions] = useState<PeriodOption[]>([]);
   const [newReservation, setNewReservation] = useState({
     guestName: "",
     email: "",
     roomNumber: "1",
     date: "",
-    startTime: "10:00 AM",
-    endTime: "11:00 AM",
+    slotID: "",
   });
 
-  // Fetch reservations from API
+  const fetchReservations = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/admin/reservations");
+      if (!response.ok) {
+        throw new Error("Failed to fetch reservations");
+      }
+      const data = await response.json();
+      setReservations(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+      console.error("Error fetching reservations:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchReservations = async () => {
+    fetchReservations();
+  }, []);
+
+  useEffect(() => {
+    const fetchPeriods = async () => {
       try {
-        setIsLoading(true);
-        const response = await fetch("/api/admin/reservations");
+        const response = await fetch("/api/periods");
         if (!response.ok) {
-          throw new Error("Failed to fetch reservations");
+          throw new Error("Failed to fetch periods");
         }
-        const data = await response.json();
-        setReservations(data);
-        setError(null);
+        const data: PeriodOption[] = await response.json();
+        setPeriodOptions(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-        console.error("Error fetching reservations:", err);
-      } finally {
-        setIsLoading(false);
+        console.error("Error fetching periods:", err);
       }
     };
 
-    fetchReservations();
+    fetchPeriods();
   }, []);
 
   const removeReservation = async (reservationId: string, guestName: string) => {
@@ -74,7 +99,7 @@ export default function ReservationsPage() {
         throw new Error("Failed to remove reservation");
       }
 
-      setReservations(reservations.filter((res) => res.id !== reservationId));
+      setReservations((prev) => prev.filter((res) => res.id !== reservationId));
       alert(`Reservation for ${guestName} has been cancelled`);
     } catch (err) {
       alert(`Error: ${err instanceof Error ? err.message : "Failed to remove reservation"}`);
@@ -82,34 +107,63 @@ export default function ReservationsPage() {
     }
   };
 
-  const handleCreateReservation = () => {
-    if (!newReservation.guestName || !newReservation.email || !newReservation.date) {
+  const handleCreateReservation = async () => {
+    if (!newReservation.guestName || !newReservation.email || !newReservation.date || !newReservation.slotID) {
       alert("Please fill in all required fields");
       return;
     }
 
-    const newRes: Reservation = {
-      id: `res${Date.now()}`,
-      roomId: `room${newReservation.roomNumber}`,
-      roomNumber: parseInt(newReservation.roomNumber),
-      guestName: newReservation.guestName,
-      email: newReservation.email,
-      date: newReservation.date,
-      startTime: newReservation.startTime,
-      endTime: newReservation.endTime,
-    };
+    try {
+      const response = await fetch("/api/admin/reservations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          slotID: Number(newReservation.slotID),
+          guestName: newReservation.guestName,
+          email: newReservation.email,
+          roomID: Number(newReservation.roomNumber),
+          reservationDate: newReservation.date,
+        }),
+      });
 
-    setReservations([...reservations, newRes]);
-    alert(`Reservation created for ${newReservation.guestName}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create reservation");
+      }
+
+      await fetchReservations();
+      alert(`Reservation created for ${newReservation.guestName}`);
+    } catch (err) {
+      alert(`Error: ${err instanceof Error ? err.message : "Failed to create reservation"}`);
+      console.error("Error creating reservation:", err);
+      return;
+    }
+
     setNewReservation({
       guestName: "",
       email: "",
       roomNumber: "1",
       date: "",
-      startTime: "10:00 AM",
-      endTime: "11:00 AM",
+      slotID: "",
     });
   };
+
+  const selectedWeekday = newReservation.date
+    ? ((new Date(`${newReservation.date}T12:00:00`).getDay() + 6) % 7) + 1
+    : null;
+
+  const availablePeriods = selectedWeekday
+    ? periodOptions
+        .filter((period) => period.DayNum === selectedWeekday)
+        .sort((a, b) => a.SlotID - b.SlotID)
+    : [];
+
+  const selectedPeriod = availablePeriods.find(
+    (period) => String(period.SlotID) === newReservation.slotID
+  );
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -140,6 +194,9 @@ export default function ReservationsPage() {
       <PageHeader title="Booking Calendar & Reservations" />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
+        {isLoading && <p className="mb-4 text-gray-700">Loading reservations...</p>}
+        {error && <p className="mb-4 text-red-600">{error}</p>}
+
         <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
           <div className="px-6 py-4 bg-linear-to-r from-red-600 to-red-700 flex justify-between items-center">
             <h3 className="text-lg font-bold text-white">Booking Calendar</h3>
@@ -208,7 +265,7 @@ export default function ReservationsPage() {
                             }`}
                             onClick={() => {
                               setSelectedDate(dateStr);
-                              setNewReservation({ ...newReservation, date: dateStr });
+                              setNewReservation({ ...newReservation, date: dateStr, slotID: "" });
                             }}
                           >
                             <span className={`font-semibold text-sm ${
@@ -239,7 +296,7 @@ export default function ReservationsPage() {
                           📅 Selected: {new Date(newReservation.date).toLocaleDateString()}
                         </h5>
                         <p className="text-xs text-gray-600">
-                          Click the "Create Reservation" button below to book this date, or select another date.
+                          Click the &quot;Create Reservation&quot; button below to book this date, or select another date.
                         </p>
                       </div>
                     )}
@@ -325,48 +382,47 @@ export default function ReservationsPage() {
                             setNewReservation({
                               ...newReservation,
                               date: e.target.value,
+                              slotID: "",
                             })
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            Start Time
-                          </label>
-                          <input
-                            type="text"
-                            value={newReservation.startTime}
-                            onChange={(e) =>
-                              setNewReservation({
-                                ...newReservation,
-                                startTime: e.target.value,
-                              })
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
-                            placeholder="10:00 AM"
-                          />
-                        </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          Period *
+                        </label>
+                        <select
+                          value={newReservation.slotID}
+                          onChange={(e) =>
+                            setNewReservation({
+                              ...newReservation,
+                              slotID: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
+                          disabled={!newReservation.date}
+                        >
+                          <option value="">Select a period</option>
+                          {availablePeriods.map((period) => (
+                            <option key={period.SlotID} value={period.SlotID}>
+                              {period.PeriodName} ({period.StartTime} - {period.EndTime})
+                            </option>
+                          ))}
+                        </select>
 
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            End Time
-                          </label>
-                          <input
-                            type="text"
-                            value={newReservation.endTime}
-                            onChange={(e) =>
-                              setNewReservation({
-                                ...newReservation,
-                                endTime: e.target.value,
-                              })
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
-                            placeholder="11:00 AM"
-                          />
-                        </div>
+                        {newReservation.date && availablePeriods.length === 0 && (
+                          <p className="text-xs text-amber-700 mt-2">
+                            No configured periods for this date.
+                          </p>
+                        )}
+
+                        {selectedPeriod && (
+                          <p className="text-xs text-gray-600 mt-2">
+                            Selected: {selectedPeriod.PeriodName} ({selectedPeriod.StartTime} - {selectedPeriod.EndTime})
+                          </p>
+                        )}
                       </div>
 
                       <button

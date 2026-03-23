@@ -26,8 +26,8 @@ export async function GET() {
             ts.SlotID,
             ts.DayOfWeek AS DayNum,
             ts.PeriodLabel AS PeriodName,
-            ts.StartTime,
-            ts.EndTime,
+            TIME_FORMAT(ts.StartTime, '%l:%i %p') AS StartTime,
+            TIME_FORMAT(ts.EndTime, '%l:%i %p') AS EndTime,
 
             CASE WHEN COUNT(CASE WHEN r.RoomID = 1 THEN 1 END) > 0 THEN 1 ELSE 0 END AS Room1,
             CASE WHEN COUNT(CASE WHEN r.RoomID = 2 THEN 1 END) > 0 THEN 1 ELSE 0 END AS Room2,

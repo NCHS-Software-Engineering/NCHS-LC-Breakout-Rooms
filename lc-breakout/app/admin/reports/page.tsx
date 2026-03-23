@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import UsageHistoryTable from "../components/UsageHistoryTable";
 
@@ -18,29 +17,14 @@ interface HistoryEntry {
 }
 
 export default function Reports() {
-  const router = useRouter();
-
-  // Mock data for all-time room usage history
-  const [historyData] = useState<HistoryEntry[]>([
-    { id: "h1", name: "John Doe", email: "john.doe@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-23", period: "Period 2", startTime: "8:41 AM", endTime: "9:34 AM" },
-    { id: "h2", name: "Jane Smith", email: "jane.smith@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-23", period: "Period 4", startTime: "10:36 AM", endTime: "11:26 AM" },
-    { id: "h3", name: "Bob Johnson", email: "bob.johnson@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-23", period: "Period 3", startTime: "9:40 AM", endTime: "10:30 AM" },
-    { id: "h4", name: "Alice Williams", email: "alice.williams@email.com", room: "Room 3", roomNumber: 3, date: "2026-02-23", period: "Period 5", startTime: "11:32 AM", endTime: "12:22 PM" },
-    { id: "h5", name: "Charlie Brown", email: "charlie.brown@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-23", period: "Period 6", startTime: "12:28 PM", endTime: "1:18 PM" },
-    { id: "h6", name: "Diana Prince", email: "diana.prince@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-23", period: "Period 7", startTime: "1:24 PM", endTime: "2:14 PM" },
-    { id: "h7", name: "Edward Norton", email: "edward.norton@email.com", room: "Room 3", roomNumber: 3, date: "2026-02-23", period: "Period 8", startTime: "2:20 PM", endTime: "3:10 PM" },
-    { id: "h8", name: "Fiona Green", email: "fiona.green@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-23", period: "Period 1", startTime: "7:45 AM", endTime: "8:35 AM" },
-    { id: "h9", name: "George Miller", email: "george.miller@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-22", period: "Period 3", startTime: "9:40 AM", endTime: "10:30 AM" },
-    { id: "h10", name: "Helen White", email: "helen.white@email.com", room: "Room 3", roomNumber: 3, date: "2026-02-22", period: "Period 5", startTime: "11:32 AM", endTime: "12:22 PM" },
-    { id: "h11", name: "John Doe", email: "john.doe@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-22", period: "Period 2", startTime: "8:41 AM", endTime: "9:34 AM" },
-    { id: "h12", name: "Ivan Black", email: "ivan.black@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-21", period: "Period 4", startTime: "10:36 AM", endTime: "11:26 AM" },
-    { id: "h13", name: "Julia Roberts", email: "julia.roberts@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-21", period: "Period 6", startTime: "12:28 PM", endTime: "1:18 PM" },
-    { id: "h14", name: "Kevin Hart", email: "kevin.hart@email.com", room: "Room 3", roomNumber: 3, date: "2026-02-21", period: "Period 7", startTime: "1:24 PM", endTime: "2:14 PM" },
-    { id: "h15", name: "Lisa Wong", email: "lisa.wong@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-20", period: "Period 1", startTime: "7:45 AM", endTime: "8:35 AM" },
-  ]);
-
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 1, 23));
-  const [selectedDate, setSelectedDate] = useState("2026-02-23");
+  const today = new Date();
+  const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [selectedDate, setSelectedDate] = useState(
+    `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`
+  );
+  const [historyData, setHistoryData] = useState<HistoryEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -62,6 +46,34 @@ export default function Reports() {
     return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   };
 
+  const selectedMonth = useMemo(
+    () => `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}`,
+    [currentDate]
+  );
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/admin/reports?month=${selectedMonth}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch reports history");
+        }
+
+        const data = await response.json();
+        setHistoryData(data);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+        console.error("Error fetching reports history:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, [selectedMonth]);
+
   const getHistoryForDate = (date: string) => {
     return historyData.filter((entry) => entry.date === date);
   };
@@ -71,6 +83,9 @@ export default function Reports() {
       <PageHeader title="Room Usage Reports" />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
+        {isLoading && <p className="mb-6 text-gray-700">Loading usage history...</p>}
+        {error && <p className="mb-6 text-red-600">{error}</p>}
+
         <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
           <div className="px-6 py-4 bg-linear-to-r from-red-600 to-red-700">
             <h3 className="text-lg font-bold text-white">Browse Usage by Date</h3>

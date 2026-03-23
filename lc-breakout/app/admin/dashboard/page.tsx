@@ -17,6 +17,13 @@ interface Room {
   currentOccupant?: Person | null;
 }
 
+interface RoomApiResponse {
+  id: number;
+  name: string;
+  currentOccupant: string | null;
+  currentOccupantEmail: string | null;
+}
+
 export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -31,17 +38,17 @@ export default function AdminDashboard() {
         if (!response.ok) {
           throw new Error("Failed to fetch room occupancy");
         }
-        const data = await response.json();
+        const data: RoomApiResponse[] = await response.json();
         
         // Transform API data to match the Room interface
-        const transformedRooms: Room[] = data.map((room: any) => ({
+        const transformedRooms: Room[] = data.map((room) => ({
           id: `room${room.id}`,
           name: room.name,
           currentOccupant: room.currentOccupant 
             ? { 
                 id: room.currentOccupant, 
                 name: room.currentOccupant, 
-                email: "user@email.com" 
+                email: room.currentOccupantEmail ?? "user@nchs.local" 
               }
             : null,
         }));
@@ -63,6 +70,8 @@ export default function AdminDashboard() {
       <DashboardHeader isLoading={isLoading} />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
+        {error && <p className="mb-6 text-red-600">{error}</p>}
+
         <RoomOccupancySection rooms={rooms} />
 
         <DashboardGrid />

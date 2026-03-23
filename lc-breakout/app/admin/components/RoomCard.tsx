@@ -8,9 +8,10 @@ interface RoomCardProps {
   room: {
     id: string;
     name: string;
+    currentReservationID?: number | null;
     currentOccupant?: Person | null;
   };
-  onRemovePerson: (roomId: string) => void;
+  onRemovePerson: (roomId: string, reservationID?: number | null) => void;
 }
 
 export default function RoomCard({ room, onRemovePerson }: RoomCardProps) {
@@ -47,7 +48,7 @@ export default function RoomCard({ room, onRemovePerson }: RoomCardProps) {
             </div>
             <button
               className="ml-3 px-3 py-1 text-red-600 hover:bg-red-100 rounded transition duration-200 text-sm font-medium cursor-pointer"
-              onClick={() => onRemovePerson(room.id)}
+              onClick={() => onRemovePerson(room.id, room.currentReservationID)}
             >
               Remove
             </button>
