@@ -9,8 +9,8 @@ export const authOptions: NextAuthOptions = {
     // While we just used Google, you can use as many login providers as you want
     providers: [
         GoogleProvider({
-            clientId: process.env.CLIENT_ID!,
-            clientSecret: process.env.CLIENT_SECRET!
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!
         })
     ],
     // Our session information is stored in a JSON web token (JWT) and stored in a cookie

@@ -19,6 +19,12 @@ export default function ReservationStatus({ selectedRoom }: ReservationStatusPro
     return;
   }
 
+  console.log("RESERVE DATA", {
+    roomId: selectedRoom?.roomNumber,
+    slotId: selectedRoom?.slotID,
+    date: selectedRoom?.date,
+  });
+
   try {
     const res = await fetch("/api/reservations", {
       method: "POST",
@@ -26,7 +32,6 @@ export default function ReservationStatus({ selectedRoom }: ReservationStatusPro
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email: session.user.email, 
         roomId: selectedRoom.roomNumber,
         slotId: selectedRoom.slotID,
         date: selectedRoom.date,
