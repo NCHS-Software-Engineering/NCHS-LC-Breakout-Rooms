@@ -3,6 +3,8 @@
 
 import GoogleProvider from "next-auth/providers/google"
 import type { NextAuthOptions } from "next-auth";
+import { RowDataPacket } from "mysql2";
+import db from "@/app/lib/db";
 
 export const authOptions: NextAuthOptions = {
     // Specify the login providers that can be used
@@ -19,6 +21,27 @@ export const authOptions: NextAuthOptions = {
         strategy: "jwt",
     },
     callbacks: {
+        async signIn({ user }) {
+            if (!user.email) return false;
+
+            // Check if user already exists
+            const [rows] = await db.query<RowDataPacket[]>(
+                `SELECT * FROM Users WHERE Email = ?`,
+                [user.email]
+            );
+
+            // If not, insert user
+            if (rows.length === 0) {
+                await db.query(
+                `INSERT INTO Users (GoogleID, Email, Name, CreatedAt)
+                VALUES (?, ?, ?, NOW())`,
+                [user.id, user.email, user.name || ""]
+                );
+            }
+
+            return true;
+            },
+
         async jwt({ token, user }) {
             if (user) {
                 const name = user.name || "";

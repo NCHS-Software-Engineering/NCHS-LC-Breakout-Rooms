@@ -3,6 +3,8 @@ import { ResultSetHeader } from "mysql2";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import db from "@/app/lib/db";
+import { RowDataPacket } from "mysql2";
+
 
 export async function POST(req: Request) {
   try {
@@ -28,20 +30,40 @@ export async function POST(req: Request) {
     });
 
     // 3. Check if already reserved
-    const existing = await db.query(
+    const [rows] = await db.query<RowDataPacket[]>(
       `SELECT * FROM Reservations
-       WHERE RoomID = ? 
-       AND SlotID = ? 
-       AND ReservationDate = ?`,
+      WHERE RoomID = ? 
+      AND SlotID = ? 
+      AND ReservationDate = ?`,
       [roomId, slotId, date]
     );
 
+    console.log("ROWS:", rows);
 
-    console.log("EXISTING RESULT:", existing);
-    if (existing.length > 0) {
+    if (rows.length > 0) {
       return NextResponse.json(
         { error: "This room is already reserved" },
         { status: 409 }
+      );
+    }
+
+    // Get user cooldown
+    const [userRows] = await db.query<RowDataPacket[]>(
+      `SELECT CooldownUntil FROM Users WHERE Email = ?`,
+      [session.user.email]
+    );
+
+    if (userRows.length === 0) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const cooldown = userRows[0].CooldownUntil;
+
+    // Block if still on cooldown
+    if (cooldown && new Date(cooldown) > new Date()) {
+      return NextResponse.json(
+        { error: "You are on cooldown" },
+        { status: 403 }
       );
     }
 
@@ -51,6 +73,13 @@ export async function POST(req: Request) {
        (SlotID, Email, RoomID, ReservationDate, CreatedAt)
        VALUES (?, ?, ?, ?, NOW())`,
       [slotId, session.user.email, roomId, date]
+    );
+
+    await db.query(
+      `UPDATE Users 
+      SET CooldownUntil = DATE_ADD(NOW(), INTERVAL 1 WEEK)
+      WHERE Email = ?`,
+      [session.user.email]
     );
 
     return NextResponse.json({ success: true });

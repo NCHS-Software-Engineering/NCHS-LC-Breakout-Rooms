@@ -45,7 +45,7 @@ export default function ReservationStatus({ selectedRoom }: ReservationStatusPro
       return;
     }
 
-    alert("Reservation successful! User: " + session.user.email + "SlotID: " + selectedRoom.slotID + "Date: " + selectedRoom.date);
+    alert("Reservation successful! \nUser: " + session.user.email + "\nSlotID: " + selectedRoom.slotID + "\nDate: " + selectedRoom.date);
 
   } catch (err) {
     console.error(err);
