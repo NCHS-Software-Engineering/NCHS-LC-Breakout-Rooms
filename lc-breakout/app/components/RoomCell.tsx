@@ -10,6 +10,8 @@ interface RoomCellProps {
   period: string;
   room: string;
   time: string;
+  slotID: number;   // add
+  date: string;     // add
   onRoomSelect: (selection: SelectedRoom) => void;
 }
 
@@ -21,6 +23,8 @@ export default function RoomCell({
   period,
   room,
   time,
+  date,
+  slotID,
   onRoomSelect,
 }: RoomCellProps) {
   const handleClick = () => {
@@ -31,6 +35,8 @@ export default function RoomCell({
         period,
         room,
         time,
+        date,
+        slotID
       });
     }
   };

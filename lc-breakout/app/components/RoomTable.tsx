@@ -2,6 +2,7 @@
 
 import { Period, SelectedRoom } from "@/types";
 import PeriodRow from "./PeriodRow";
+import { getSelectedDate } from "../utils/date";
 
 interface RoomTableProps {
   periods: Period[];
@@ -16,6 +17,8 @@ export default function RoomTable({
   selectedRoom,
   onRoomSelect,
 }: RoomTableProps) {
+  const selectedDate = getSelectedDate(selectedDay);
+
   const filteredPeriods = periods.filter((period) => period.DayName === selectedDay);
 
   return (
@@ -36,6 +39,7 @@ export default function RoomTable({
             period={period}
             index={index}
             selectedRoom={selectedRoom}
+            selectedDate={selectedDate!}
             onRoomSelect={onRoomSelect}
           />
         ))}

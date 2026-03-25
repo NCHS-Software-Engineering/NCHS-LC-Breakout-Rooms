@@ -5,20 +5,28 @@ import DaySelector from "./DaySelector";
 import ReservationStatus from "./ReservationStatus";
 import SelectedRoomDisplay from "./SelectedRoomDisplay";
 import RoomTable from "./RoomTable";
+import { getSelectedDate } from "../utils/date";
 
 export default function ReserveInfo() {
   const [periods, setPeriods] = useState<Period[]>([]);
   const [selectedDay, setSelectedDay] = useState("");
   const [selectedRoom, setSelectedRoom] = useState<SelectedRoom | null>(null);
 
+
+  const fetchPeriods = async () => {
+    const date = getSelectedDate(selectedDay); // convert Monday → "2026-03-23"
+
+    const res = await fetch(`/api/periods?date=${date}`); // ✅ FIX
+
+    const data = await res.json();
+    setPeriods(data);
+  };
+
   useEffect(() => {
-    async function fetchPeriods() {
-      const res = await fetch("/api/periods");
-      const data = await res.json();
-      setPeriods(data);
-    }
+    if (!selectedDay) return;
+
     fetchPeriods();
-  }, []);
+  }, [selectedDay]);
 
   const handleDaySelect = (day: string) => {
     setSelectedDay(day);
