@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import mysql, { RowDataPacket } from "mysql2/promise";
+import { RowDataPacket } from "mysql2/promise";
 import connection from "@/app/lib/db";
+import { formatTimeToAmPm } from "@/app/lib/time";
 
 type DBRow = RowDataPacket & {
   DayNum: number;
@@ -52,8 +53,8 @@ export async function GET(req: Request) {
       DayNum: row.DayNum,
       DayName: days[row.DayNum - 1],
       PeriodName: row.PeriodName,
-      StartTime: row.StartTime,
-      EndTime: row.EndTime,
+      StartTime: formatTimeToAmPm(row.StartTime),
+      EndTime: formatTimeToAmPm(row.EndTime),
       Room1: row.Room1 === 0, // true = vacant
       Room2: row.Room2 === 0,
       Room3: row.Room3 === 0,

@@ -1,9 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import UsageHistoryTable from "../components/UsageHistoryTable";
+import { AdminReservation } from "../lib/types";
+import { useAdminGuard } from "../lib/useAdminGuard";
 
 interface HistoryEntry {
   id: string;
@@ -18,29 +19,54 @@ interface HistoryEntry {
 }
 
 export default function Reports() {
-  const router = useRouter();
+  const { isAuthorized, isCheckingAuth } = useAdminGuard();
+  const [reservations, setReservations] = useState<AdminReservation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data for all-time room usage history
-  const [historyData] = useState<HistoryEntry[]>([
-    { id: "h1", name: "John Doe", email: "john.doe@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-23", period: "Period 2", startTime: "8:41 AM", endTime: "9:34 AM" },
-    { id: "h2", name: "Jane Smith", email: "jane.smith@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-23", period: "Period 4", startTime: "10:36 AM", endTime: "11:26 AM" },
-    { id: "h3", name: "Bob Johnson", email: "bob.johnson@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-23", period: "Period 3", startTime: "9:40 AM", endTime: "10:30 AM" },
-    { id: "h4", name: "Alice Williams", email: "alice.williams@email.com", room: "Room 3", roomNumber: 3, date: "2026-02-23", period: "Period 5", startTime: "11:32 AM", endTime: "12:22 PM" },
-    { id: "h5", name: "Charlie Brown", email: "charlie.brown@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-23", period: "Period 6", startTime: "12:28 PM", endTime: "1:18 PM" },
-    { id: "h6", name: "Diana Prince", email: "diana.prince@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-23", period: "Period 7", startTime: "1:24 PM", endTime: "2:14 PM" },
-    { id: "h7", name: "Edward Norton", email: "edward.norton@email.com", room: "Room 3", roomNumber: 3, date: "2026-02-23", period: "Period 8", startTime: "2:20 PM", endTime: "3:10 PM" },
-    { id: "h8", name: "Fiona Green", email: "fiona.green@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-23", period: "Period 1", startTime: "7:45 AM", endTime: "8:35 AM" },
-    { id: "h9", name: "George Miller", email: "george.miller@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-22", period: "Period 3", startTime: "9:40 AM", endTime: "10:30 AM" },
-    { id: "h10", name: "Helen White", email: "helen.white@email.com", room: "Room 3", roomNumber: 3, date: "2026-02-22", period: "Period 5", startTime: "11:32 AM", endTime: "12:22 PM" },
-    { id: "h11", name: "John Doe", email: "john.doe@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-22", period: "Period 2", startTime: "8:41 AM", endTime: "9:34 AM" },
-    { id: "h12", name: "Ivan Black", email: "ivan.black@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-21", period: "Period 4", startTime: "10:36 AM", endTime: "11:26 AM" },
-    { id: "h13", name: "Julia Roberts", email: "julia.roberts@email.com", room: "Room 2", roomNumber: 2, date: "2026-02-21", period: "Period 6", startTime: "12:28 PM", endTime: "1:18 PM" },
-    { id: "h14", name: "Kevin Hart", email: "kevin.hart@email.com", room: "Room 3", roomNumber: 3, date: "2026-02-21", period: "Period 7", startTime: "1:24 PM", endTime: "2:14 PM" },
-    { id: "h15", name: "Lisa Wong", email: "lisa.wong@email.com", room: "Room 1", roomNumber: 1, date: "2026-02-20", period: "Period 1", startTime: "7:45 AM", endTime: "8:35 AM" },
-  ]);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
 
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 1, 23));
-  const [selectedDate, setSelectedDate] = useState("2026-02-23");
+  useEffect(() => {
+    if (!isAuthorized) {
+      return;
+    }
+
+    const loadReservations = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("/api/admin/reservations", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Failed to fetch reports data");
+        }
+
+        const data = await response.json();
+        setReservations(Array.isArray(data.reservations) ? data.reservations : []);
+      } catch (error) {
+        console.error(error);
+        setReservations([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadReservations();
+  }, [isAuthorized]);
+
+  const historyData = useMemo<HistoryEntry[]>(
+    () =>
+      reservations.map((reservation) => ({
+        id: reservation.id,
+        name: reservation.guestName,
+        email: reservation.email,
+        room: `Room ${reservation.roomNumber}`,
+        roomNumber: reservation.roomNumber,
+        date: reservation.date,
+        period: reservation.period,
+        startTime: reservation.startTime,
+        endTime: reservation.endTime,
+      })),
+    [reservations]
+  );
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -66,11 +92,24 @@ export default function Reports() {
     return historyData.filter((entry) => entry.date === date);
   };
 
+  if (isCheckingAuth || !isAuthorized) {
+    return (
+      <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100 flex items-center justify-center">
+        <p className="text-gray-700 font-semibold">Loading reports...</p>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100">
       <PageHeader title="Room Usage Reports" />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
+        {isLoading ? (
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center text-gray-600 font-medium mb-8">
+            Loading usage history...
+          </div>
+        ) : null}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
           <div className="px-6 py-4 bg-linear-to-r from-red-600 to-red-700">
             <h3 className="text-lg font-bold text-white">Browse Usage by Date</h3>
@@ -83,7 +122,7 @@ export default function Reports() {
                   onClick={previousMonth}
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform cursor-pointer"
                 >
-                  ← Previous
+                  Previous
                 </button>
                 <h4 className="text-xl font-bold text-gray-900">
                   {currentDate.toLocaleDateString("en-US", {
@@ -95,7 +134,7 @@ export default function Reports() {
                   onClick={nextMonth}
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform cursor-pointer"
                 >
-                  Next →
+                  Next
                 </button>
               </div>
 
@@ -174,15 +213,6 @@ export default function Reports() {
             </div>
           </div>
         )}
-
-        <div className="mt-8 flex justify-end gap-4">
-          <button className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold rounded-lg transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform cursor-pointer">
-            Download CSV
-          </button>
-          <button className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform cursor-pointer">
-            Print Report
-          </button>
-        </div>
       </div>
     </main>
   );

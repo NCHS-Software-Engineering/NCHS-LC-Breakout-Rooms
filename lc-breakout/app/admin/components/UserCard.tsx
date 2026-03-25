@@ -5,9 +5,10 @@ import { useState } from "react";
 interface UserCardProps {
   user: {
     id: string;
+    email: string;
     firstName: string;
     lastName: string;
-    cooldownEndsAt?: string;
+    cooldownEndsAt?: string | null;
   };
   onSetCooldown: (userId: string, days: number) => void;
 }
@@ -61,7 +62,7 @@ export default function UserCard({ user, onSetCooldown }: UserCardProps) {
             {user.firstName} {user.lastName}
           </h3>
           <p className="text-sm text-gray-600 mt-1">
-            <span className="font-semibold">ID:</span> {user.id}
+            <span className="font-semibold">Email:</span> {user.email}
           </p>
           <p className={`text-sm mt-2 ${cooldownStatus.className}`}>
             {cooldownStatus.text}
