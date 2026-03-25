@@ -6,6 +6,8 @@ import type { NextAuthOptions } from "next-auth";
 import { RowDataPacket } from "mysql2";
 import db from "@/app/lib/db";
 
+const ADMIN_EMAILS = ["nsamal@stu.naperville203.org"];
+
 export const authOptions: NextAuthOptions = {
     // Specify the login providers that can be used
     // While we just used Google, you can use as many login providers as you want
@@ -46,21 +48,22 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 const name = user.name || "";
                 const email = user.email || "";
+                const normalizedEmail = email.toLowerCase();
                 
-                // Admin: name is "gottlieb"
-                if (name.toLowerCase().includes("gottlieb")) {
+                // Admin: explicit email allowlist or known admin name.
+                if (ADMIN_EMAILS.includes(normalizedEmail) || name.toLowerCase().includes("gottlieb")) {
                     token.role = "admin";
                 }
                 // Teacher: email contains "naperville203" but not "stu.naperville203"
-                else if (email.includes("naperville203") && !email.includes("stu.naperville203")) {
+                else if (normalizedEmail.includes("naperville203") && !normalizedEmail.includes("stu.naperville203")) {
                     token.role = "teacher";
                 }
                 // Student: email contains "stu.naperville203"
-                else if (email.includes("stu.naperville203")) {
+                else if (normalizedEmail.includes("stu.naperville203")) {
                     token.role = "student";
                 }
                 
-                token.email = email;
+                token.email = normalizedEmail;
                 token.name = name;
             }
             return token;
