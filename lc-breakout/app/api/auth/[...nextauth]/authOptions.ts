@@ -1,12 +1,13 @@
 // authOptions.ts is required for NextAuth
 // This file specifies how users should login, how sessions are handled, and which providers are
 
-import GoogleProvider from "next-auth/providers/google"
+import GoogleProvider from "next-auth/providers/google";
 import type { NextAuthOptions } from "next-auth";
 import { RowDataPacket } from "mysql2";
 import db from "@/app/lib/db";
 
 const ADMIN_EMAILS = ["nsamal@stu.naperville203.org"];
+const ADMIN_EMAIL_ALLOWLIST = new Set(ADMIN_EMAILS.map((email) => email.toLowerCase()));
 
 export const authOptions: NextAuthOptions = {
     // Specify the login providers that can be used
@@ -50,8 +51,8 @@ export const authOptions: NextAuthOptions = {
                 const email = user.email || "";
                 const normalizedEmail = email.toLowerCase();
                 
-                // Admin: explicit email allowlist or known admin name.
-                if (ADMIN_EMAILS.includes(normalizedEmail) || name.toLowerCase().includes("gottlieb")) {
+                // Admin: only explicit trusted email allowlist.
+                if (ADMIN_EMAIL_ALLOWLIST.has(normalizedEmail)) {
                     token.role = "admin";
                 }
                 // Teacher: email contains "naperville203" but not "stu.naperville203"
