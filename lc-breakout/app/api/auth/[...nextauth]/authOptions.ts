@@ -1,10 +1,13 @@
 // authOptions.ts is required for NextAuth
 // This file specifies how users should login, how sessions are handled, and which providers are
 
-import GoogleProvider from "next-auth/providers/google"
+import GoogleProvider from "next-auth/providers/google";
 import type { NextAuthOptions } from "next-auth";
 import { RowDataPacket } from "mysql2";
 import db from "@/app/lib/db";
+
+const ADMIN_EMAILS = ["nsamal@stu.naperville203.org"];
+const ADMIN_EMAIL_ALLOWLIST = new Set(ADMIN_EMAILS.map((email) => email.toLowerCase()));
 
 export const authOptions: NextAuthOptions = {
     // Specify the login providers that can be used
@@ -46,21 +49,22 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 const name = user.name || "";
                 const email = user.email || "";
+                const normalizedEmail = email.toLowerCase();
                 
-                // Admin: name is "gottlieb"
-                if (name.toLowerCase().includes("gottlieb")) {
+                // Admin: only explicit trusted email allowlist.
+                if (ADMIN_EMAIL_ALLOWLIST.has(normalizedEmail)) {
                     token.role = "admin";
                 }
                 // Teacher: email contains "naperville203" but not "stu.naperville203"
-                else if (email.includes("naperville203") && !email.includes("stu.naperville203")) {
+                else if (normalizedEmail.includes("naperville203") && !normalizedEmail.includes("stu.naperville203")) {
                     token.role = "teacher";
                 }
                 // Student: email contains "stu.naperville203"
-                else if (email.includes("stu.naperville203")) {
+                else if (normalizedEmail.includes("stu.naperville203")) {
                     token.role = "student";
                 }
                 
-                token.email = email;
+                token.email = normalizedEmail;
                 token.name = name;
             }
             return token;

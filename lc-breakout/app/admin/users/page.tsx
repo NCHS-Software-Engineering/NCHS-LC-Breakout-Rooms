@@ -1,60 +1,95 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import SearchForm from "../components/SearchForm";
 import UserCard from "../components/UserCard";
 import EmptyState from "../components/EmptyState";
-
-interface ManagedUser {
-  id: string;
-  firstName: string;
-  lastName: string;
-  cooldownEndsAt?: string;
-}
+import { ManagedUser } from "../lib/types";
+import { useAdminGuard } from "../lib/useAdminGuard";
 
 export default function ManageUsersPage() {
+  const { isAuthorized, isCheckingAuth } = useAdminGuard();
   const [searchType, setSearchType] = useState<"name" | "id">("name");
   const [searchQuery, setSearchQuery] = useState("");
-  const [users, setUsers] = useState<ManagedUser[]>([
-    { id: "12345", firstName: "John", lastName: "Doe" },
-    { id: "23456", firstName: "Alice", lastName: "Williams" },
-  ]);
-
+  const [users, setUsers] = useState<ManagedUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const normalizedQuery = searchQuery.trim().toLowerCase();
-  const isIdQueryValid = searchType !== "id" || /^\d{5}$/.test(normalizedQuery);
+
+  useEffect(() => {
+    if (!isAuthorized) {
+      return;
+    }
+
+    const loadUsers = async () => {
+      setIsLoading(true);
+      try {
+        const params = new URLSearchParams({
+          searchType,
+          query: normalizedQuery,
+        });
+        const response = await fetch(`/api/admin/users?${params.toString()}`, {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch users");
+        }
+
+        const data = await response.json();
+        setUsers(Array.isArray(data.users) ? data.users : []);
+      } catch (error) {
+        console.error(error);
+        setUsers([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUsers();
+  }, [isAuthorized, normalizedQuery, searchType]);
 
   const filteredUsers = useMemo(() => {
-    if (!normalizedQuery) {
-      return users;
+    return users;
+  }, [users]);
+
+  const handleSetCooldown = async (userId: string, cooldownDays: number) => {
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, days: cooldownDays }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        window.alert(errorData.error || "Failed to set cooldown");
+        return;
+      }
+
+      const data = await response.json();
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === userId ? { ...user, cooldownEndsAt: data.cooldownEndsAt } : user
+        )
+      );
+    } catch (error) {
+      console.error(error);
+      window.alert("Failed to set cooldown");
     }
-
-    if (searchType === "id") {
-      return users.filter((user) => user.id === normalizedQuery);
-    }
-
-    return users.filter((user) => {
-      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-      return fullName.includes(normalizedQuery);
-    });
-  }, [normalizedQuery, searchType, users]);
-
-  const handleSetCooldown = (userId: string, cooldownDays: number) => {
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + cooldownDays);
-
-    setUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user.id === userId
-          ? { ...user, cooldownEndsAt: expiresAt.toISOString() }
-          : user
-      )
-    );
   };
 
+  if (isCheckingAuth || !isAuthorized) {
+    return (
+      <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100 flex items-center justify-center">
+        <p className="text-gray-700 font-semibold">Loading user management...</p>
+      </main>
+    );
+  }
+
   const renderContent = () => {
-    if (normalizedQuery && searchType === "id" && !isIdQueryValid) {
-      return <EmptyState message="Enter a valid 5-digit ID to search." icon="warning" />;
+    if (isLoading) {
+      return <EmptyState message="Loading users..." icon="search" />;
     }
 
     if (filteredUsers.length === 0) {
@@ -78,7 +113,6 @@ export default function ManageUsersPage() {
         <SearchForm
           searchType={searchType}
           searchQuery={searchQuery}
-          isIdQueryValid={isIdQueryValid}
           onSearchTypeChange={setSearchType}
           onSearchQueryChange={setSearchQuery}
         />

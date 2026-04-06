@@ -1,18 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 interface DashboardHeaderProps {
   isLoading?: boolean;
 }
 
 export default function DashboardHeader({ isLoading = false }: DashboardHeaderProps) {
-  const router = useRouter();
-
-  const handleLogout = () => {
-    // Clear any session data
-    // localStorage.removeItem("adminLoggedIn");
-    router.push("/admin/login");
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/admin/login" });
   };
 
   return (

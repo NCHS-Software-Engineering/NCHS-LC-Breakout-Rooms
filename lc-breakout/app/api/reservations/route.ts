@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { ResultSetHeader } from "mysql2";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import db from "@/app/lib/db";

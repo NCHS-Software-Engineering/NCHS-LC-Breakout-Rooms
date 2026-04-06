@@ -12,13 +12,8 @@ type Reservation = {
 
 export default function UserInfo() {
   const { data: session, status } = useSession();
-  const [mounted, setMounted] = useState(false);
   const [cooldown, setCooldown] = useState<string | null>(null);
   const [reservations, setReservations] = useState<Reservation[]>([]);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (session?.user?.email) {
@@ -31,8 +26,6 @@ export default function UserInfo() {
         .catch(err => console.error("Failed to fetch reservations:", err));
     }
   }, [session]);
-
-  if (!mounted) return null;
 
   if (status === "loading") {
     return <div className="text-center text-gray-600">Loading...</div>;

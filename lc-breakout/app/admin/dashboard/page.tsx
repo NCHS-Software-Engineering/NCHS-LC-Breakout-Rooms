@@ -1,43 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DashboardHeader from "../components/DashboardHeader";
 import RoomOccupancySection from "../components/RoomOccupancySection";
 import DashboardGrid from "../components/DashboardGrid";
-
-interface Person {
-  id: string;
-  name: string;
-  email: string;
-}
-
-interface Room {
-  id: string;
-  name: string;
-  currentOccupant?: Person | null;
-}
+import { useAdminGuard } from "../lib/useAdminGuard";
+import { AdminRoom } from "../lib/types";
 
 export default function AdminDashboard() {
-  const [isLoading] = useState(false);
+  const { isAuthorized, isCheckingAuth } = useAdminGuard();
+  const [rooms, setRooms] = useState<AdminRoom[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data for the 3 breakout rooms
-  const [rooms] = useState<Room[]>([
-    {
-      id: "room1",
-      name: "Room 1",
-      currentOccupant: { id: "p1", name: "John Doe", email: "john.doe@email.com" },
-    },
-    {
-      id: "room2",
-      name: "Room 2",
-      currentOccupant: { id: "p4", name: "Alice Williams", email: "alice.williams@email.com" },
-    },
-    {
-      id: "room3",
-      name: "Room 3",
-      currentOccupant: null,
-    },
-  ]);
+  useEffect(() => {
+    if (!isAuthorized) {
+      return;
+    }
+
+    const loadRooms = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("/api/admin/rooms/current", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Failed to load rooms");
+        }
+
+        const data = await response.json();
+        setRooms(Array.isArray(data.rooms) ? data.rooms : []);
+      } catch (error) {
+        console.error(error);
+        setRooms([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadRooms();
+  }, [isAuthorized]);
+
+  if (isCheckingAuth || !isAuthorized) {
+    return (
+      <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100 flex items-center justify-center">
+        <p className="text-gray-700 font-semibold">Loading admin dashboard...</p>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100">
       <DashboardHeader isLoading={isLoading} />

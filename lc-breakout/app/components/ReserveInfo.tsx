@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Period, SelectedRoom } from "@/types";
 import DaySelector from "./DaySelector";
 import ReservationStatus from "./ReservationStatus";
@@ -13,24 +13,22 @@ export default function ReserveInfo() {
   const [selectedRoom, setSelectedRoom] = useState<SelectedRoom | null>(null);
 
 
-  const fetchPeriods = async () => {
-    const date = getSelectedDate(selectedDay); // convert Monday → "2026-03-23"
+  const fetchPeriods = async (day: string) => {
+    const date = getSelectedDate(day);
 
-    const res = await fetch(`/api/periods?date=${date}`); // ✅ FIX
+    const res = await fetch(`/api/periods?date=${date}`);
 
     const data = await res.json();
     setPeriods(data);
   };
 
-  useEffect(() => {
-    if (!selectedDay) return;
-
-    fetchPeriods();
-  }, [selectedDay]);
-
   const handleDaySelect = (day: string) => {
     setSelectedDay(day);
     setSelectedRoom(null);
+    fetchPeriods(day).catch((error) => {
+      console.error("Failed to fetch periods:", error);
+      setPeriods([]);
+    });
   };
 
   const handleRoomSelect = (selection: SelectedRoom) => {

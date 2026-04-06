@@ -1,9 +1,13 @@
 "use client";
 
 interface Person {
+  reservationId: string;
   id: string;
   name: string;
   email: string;
+  period?: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 interface Room {
@@ -76,6 +80,16 @@ export default function RoomOccupancySection({ rooms }: RoomOccupancySectionProp
                     {room.currentOccupant.email}
                   </p>
                 </div>
+                {room.currentOccupant.period && room.currentOccupant.startTime && room.currentOccupant.endTime ? (
+                  <div>
+                    <p className="text-xs text-gray-600 uppercase tracking-wide font-semibold">
+                      Active Slot
+                    </p>
+                    <p className="text-sm text-gray-700 mt-1">
+                      {room.currentOccupant.period} ({room.currentOccupant.startTime} - {room.currentOccupant.endTime})
+                    </p>
+                  </div>
+                ) : null}
               </div>
             ) : (
               <div className="text-center py-8">
