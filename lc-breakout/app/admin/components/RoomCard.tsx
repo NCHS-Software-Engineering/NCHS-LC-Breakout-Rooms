@@ -56,7 +56,7 @@ export default function RoomCard({ room, onRemovePerson }: RoomCardProps) {
             </div>
             <button
               className="ml-3 px-3 py-1 text-red-600 hover:bg-red-100 rounded transition duration-200 text-sm font-medium cursor-pointer"
-              onClick={() => onRemovePerson(room.currentOccupant.reservationId)}
+              onClick={() => onRemovePerson(room.currentOccupant!.reservationId)}
             >
               Remove
             </button>

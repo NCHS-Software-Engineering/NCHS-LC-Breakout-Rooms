@@ -6,7 +6,7 @@ import type { NextAuthOptions } from "next-auth";
 import { RowDataPacket } from "mysql2";
 import db from "@/app/lib/db";
 
-const ADMIN_EMAILS = ["nsamal@stu.naperville203.org"];
+const ADMIN_EMAILS = ["nsamal@stu.naperville203.org", "hhliu@stu.naperville203.org"];
 const ADMIN_EMAIL_ALLOWLIST = new Set(ADMIN_EMAILS.map((email) => email.toLowerCase()));
 
 export const authOptions: NextAuthOptions = {
@@ -27,22 +27,27 @@ export const authOptions: NextAuthOptions = {
         async signIn({ user }) {
             if (!user.email) return false;
 
-            // Check if user already exists
-            const [rows] = await db.query<RowDataPacket[]>(
-                `SELECT * FROM Users WHERE Email = ?`,
-                [user.email]
-            );
-
-            // If not, insert user
-            if (rows.length === 0) {
-                await db.query(
-                `INSERT INTO Users (GoogleID, Email, Name, CreatedAt)
-                VALUES (?, ?, ?, NOW())`,
-                [user.id, user.email, user.name || ""]
+            try {
+                // Check if user already exists
+                const [rows] = await db.query<RowDataPacket[]>(
+                    `SELECT * FROM Users WHERE Email = ?`,
+                    [user.email]
                 );
-            }
 
-            return true;
+                // If not, insert user
+                if (rows.length === 0) {
+                    await db.query(
+                    `INSERT INTO Users (GoogleID, Email, Name, CreatedAt)
+                    VALUES (?, ?, ?, NOW())`,
+                    [user.id, user.email, user.name || ""]
+                    );
+                }
+
+                return true;
+            } catch (error) {
+                console.error("Sign-in error for", user.email, error);
+                return false;
+            }
             },
 
         async jwt({ token, user }) {

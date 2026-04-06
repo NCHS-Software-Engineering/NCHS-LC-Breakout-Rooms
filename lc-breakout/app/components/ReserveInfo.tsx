@@ -35,6 +35,13 @@ export default function ReserveInfo() {
     setSelectedRoom(selection);
   };
 
+  const getFormattedDate = (day: string) => {
+    const dateStr = getSelectedDate(day);
+    if (!dateStr) return "";
+    const date = new Date(dateStr + "T00:00:00");
+    return date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-start">
       <h1 className="text-4xl font-bold">LC Breakout Room Sign-up</h1>
@@ -45,6 +52,9 @@ export default function ReserveInfo() {
 
         {selectedDay && (
           <div className="w-3/4 flex flex-col items-center">
+            <div className="mb-4 text-lg font-semibold text-blue-400">
+              Selected Date: {getFormattedDate(selectedDay)}
+            </div>
             <ReservationStatus selectedRoom={selectedRoom} />
             <SelectedRoomDisplay selectedRoom={selectedRoom} />
             <RoomTable

@@ -24,7 +24,13 @@ export default function ReservationsPage() {
 
   const [showCalendar, setShowCalendar] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
+  const getLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+  const [selectedDate, setSelectedDate] = useState(getLocalDateString(new Date()));
 
   const [periodOptions, setPeriodOptions] = useState<PeriodOption[]>([]);
   const [isLoadingPeriods, setIsLoadingPeriods] = useState(false);
@@ -331,7 +337,7 @@ export default function ReservationsPage() {
                     {newReservation.date && (
                       <div className="mt-6 p-4 bg-white border-2 border-red-200 rounded-lg shadow-sm">
                         <h5 className="font-bold text-gray-900 mb-2 text-sm">
-                          Selected: {new Date(newReservation.date).toLocaleDateString()}
+                          Selected: {new Date(newReservation.date + "T00:00:00").toLocaleDateString()}
                         </h5>
                         <p className="text-xs text-gray-600">
                           Pick a room and period, then create the reservation.
