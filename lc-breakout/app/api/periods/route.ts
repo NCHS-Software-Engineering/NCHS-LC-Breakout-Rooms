@@ -40,10 +40,11 @@ export async function GET(req: Request) {
       LEFT JOIN Reservations r
         ON ts.SlotID = r.SlotID
         AND r.ReservationDate = ?
+      WHERE ts.DayOfWeek = DAYOFWEEK(?) - 1
       GROUP BY ts.SlotID
-      ORDER BY ts.DayOfWeek, ts.PeriodNumber
+      ORDER BY ts.PeriodNumber
       `,
-      [selectedDate] // ✅ parameterized query
+      [selectedDate, selectedDate] // ✅ parameterized query
     );
 
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];

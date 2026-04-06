@@ -21,11 +21,29 @@ interface RoomOccupancySectionProps {
 }
 
 export default function RoomOccupancySection({ rooms }: RoomOccupancySectionProps) {
+  const today = new Date();
+  const dateString = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  
+  // Get the current active period from any occupant
+  const activePeriod = rooms
+    .find((room) => room.currentOccupant?.period)
+    ?.currentOccupant?.period || null;
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 lg:col-span-3 hover:shadow-xl transition-shadow duration-200 mb-8">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Current Room Occupancy</h2>
         <p className="text-gray-600 text-sm mt-1">Real-time status of all breakout rooms</p>
+        <div className="mt-3 pt-3 border-t border-gray-200 flex gap-4 text-sm">
+          <div>
+            <span className="text-gray-600">Date:</span> <span className="font-semibold text-gray-900">{dateString}</span>
+          </div>
+          {activePeriod && (
+            <div>
+              <span className="text-gray-600">Current Period:</span> <span className="font-semibold text-gray-900">{activePeriod}</span>
+            </div>
+          )}
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

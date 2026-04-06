@@ -20,17 +20,19 @@ export async function GET() {
     );
     const cooldown = userRows[0]?.CooldownUntil || null;
 
-    // 2️⃣ Get only future reservations
+    // 2️⃣ Get only future reservations with period names
     const [reservationRows] = await db.query<RowDataPacket[]>(
         `SELECT 
-            RoomID, 
-            SlotID, 
-            DATE_FORMAT(ReservationDate, '%Y-%m-%d') AS ReservationDate,
-            CreatedAt
-        FROM Reservations
-        WHERE Email = ?
-            AND ReservationDate >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-        ORDER BY ReservationDate, SlotID`,
+            r.RoomID, 
+            r.SlotID, 
+            DATE_FORMAT(r.ReservationDate, '%Y-%m-%d') AS ReservationDate,
+            r.CreatedAt,
+            ts.PeriodLabel AS PeriodName
+        FROM Reservations r
+        LEFT JOIN TimeSlots ts ON r.SlotID = ts.SlotID
+        WHERE r.Email = ?
+            AND r.ReservationDate >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        ORDER BY r.ReservationDate, r.SlotID`,
         [email]
         );
 

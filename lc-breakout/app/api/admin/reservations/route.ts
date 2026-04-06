@@ -159,6 +159,19 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Invalid reservation ID" }, { status: 400 });
     }
 
+    // First, get the user's email from the reservation
+    const [reservationRows] = await db.query<RowDataPacket[]>(
+      `SELECT Email FROM Reservations WHERE ReservationID = ?`,
+      [reservationId]
+    );
+
+    if (reservationRows.length === 0) {
+      return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
+    }
+
+    const userEmail = reservationRows[0].Email;
+
+    // Delete the reservation
     const [result] = await db.query<ResultSetHeader>(
       `DELETE FROM Reservations WHERE ReservationID = ?`,
       [reservationId]
@@ -167,6 +180,12 @@ export async function DELETE(req: Request) {
     if (result.affectedRows === 0) {
       return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
     }
+
+    // Reset the user's cooldown to 3 minutes
+    await db.query(
+      `UPDATE Users SET CooldownUntil = DATE_ADD(NOW(), INTERVAL 3 MINUTE) WHERE Email = ?`,
+      [userEmail]
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {

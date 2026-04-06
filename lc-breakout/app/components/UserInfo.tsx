@@ -8,6 +8,7 @@ type Reservation = {
   SlotID: number;
   ReservationDate: string;
   CreatedAt: string;
+  PeriodName: string | null;
 };
 
 export default function UserInfo() {
@@ -55,14 +56,14 @@ export default function UserInfo() {
             {session.user?.role?.toUpperCase() || "STUDENT"}
           </span>
         </p>
-        <p><strong>Cooldown Until:</strong> {cooldown ? new Date(cooldown).toLocaleString() : "No cooldown"}</p>
+        <p><strong>Time Until Next Reservation:</strong> {cooldown ? new Date(cooldown).toLocaleString() : "No cooldown"}</p>
         <div>
           <strong>Your Reservations:</strong>
           {reservations.length > 0 ? (
             <ul className="ml-4 list-disc">
               {reservations.map(r => (
                 <li key={`${r.RoomID}-${r.SlotID}-${r.ReservationDate}`}>
-                  Room {r.RoomID}, Slot {r.SlotID}, Date {r.ReservationDate}
+                  Room {r.RoomID}, {`Period ` + r.PeriodName || `Slot ${r.SlotID}`}, Date {r.ReservationDate}
                 </li>
               ))}
             </ul>
