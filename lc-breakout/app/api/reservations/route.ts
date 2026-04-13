@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 
     // 3. Check if already reserved
     const [rows] = await db.query<RowDataPacket[]>(
-      `SELECT * FROM Reservations
+      `SELECT * FROM Reservation
       WHERE RoomID = ? 
       AND SlotID = ? 
       AND ReservationDate = ?`,
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
 
     // Get user cooldown
     const [userRows] = await db.query<RowDataPacket[]>(
-      `SELECT CooldownUntil FROM Users WHERE Email = ?`,
+      `SELECT CooldownUntil FROM User WHERE Email = ?`,
       [session.user.email]
     );
 
@@ -68,14 +68,14 @@ export async function POST(req: Request) {
 
     // 4. Insert reservation
     await db.query(
-      `INSERT INTO Reservations 
+      `INSERT INTO Reservation 
        (SlotID, Email, RoomID, ReservationDate, CreatedAt)
        VALUES (?, ?, ?, ?, NOW())`,
       [slotId, session.user.email, roomId, date]
     );
 
     await db.query(
-      `UPDATE Users 
+      `UPDATE User 
       SET CooldownUntil = DATE_ADD(NOW(), INTERVAL 1 WEEK)
       WHERE Email = ?`,
       [session.user.email]

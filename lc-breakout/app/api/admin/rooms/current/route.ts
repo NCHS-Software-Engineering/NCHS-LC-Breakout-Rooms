@@ -30,9 +30,9 @@ export async function GET() {
          ts.PeriodLabel AS period,
          ts.StartTime AS startTime,
          ts.EndTime AS endTime
-       FROM Reservations r
-       JOIN TimeSlots ts ON ts.SlotID = r.SlotID
-       LEFT JOIN Users u ON u.Email = r.Email
+       FROM Reservation r
+       JOIN TimeSlot ts ON ts.SlotID = r.SlotID
+       LEFT JOIN User u ON u.Email = r.Email
        WHERE r.ReservationDate = CURDATE()
          AND TIME(NOW()) BETWEEN ts.StartTime AND ts.EndTime`
     );

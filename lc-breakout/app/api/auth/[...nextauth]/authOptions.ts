@@ -30,14 +30,14 @@ export const authOptions: NextAuthOptions = {
             try {
                 // Check if user already exists
                 const [rows] = await db.query<RowDataPacket[]>(
-                    `SELECT * FROM Users WHERE Email = ?`,
+                    `SELECT * FROM User WHERE Email = ?`,
                     [user.email]
                 );
 
                 // If not, insert user
                 if (rows.length === 0) {
                     await db.query(
-                    `INSERT INTO Users (GoogleID, Email, Name, CreatedAt)
+                    `INSERT INTO User (GoogleID, Email, Name, CreatedAt)
                     VALUES (?, ?, ?, NOW())`,
                     [user.id, user.email, user.name || ""]
                     );
