@@ -15,7 +15,7 @@ export async function GET() {
 
     // 1️⃣ Get user's cooldown
     const [userRows] = await db.query<RowDataPacket[]>(
-      `SELECT CooldownUntil FROM Users WHERE Email = ?`,
+      `SELECT CooldownUntil FROM User WHERE Email = ?`,
       [email]
     );
     const cooldown = userRows[0]?.CooldownUntil || null;
@@ -28,8 +28,8 @@ export async function GET() {
             DATE_FORMAT(r.ReservationDate, '%Y-%m-%d') AS ReservationDate,
             r.CreatedAt,
             ts.PeriodLabel AS PeriodName
-        FROM Reservations r
-        LEFT JOIN TimeSlots ts ON r.SlotID = ts.SlotID
+        FROM Reservation r
+        LEFT JOIN TimeSlot ts ON r.SlotID = ts.SlotID
         WHERE r.Email = ?
             AND r.ReservationDate >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
         ORDER BY r.ReservationDate, r.SlotID`,

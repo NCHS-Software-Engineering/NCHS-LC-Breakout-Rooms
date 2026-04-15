@@ -13,7 +13,7 @@ export async function GET() {
     }
 
     const [rows] = await db.query<RowDataPacket[]>(
-      `SELECT CooldownUntil FROM Users WHERE Email = ?`,
+      `SELECT CooldownUntil FROM User WHERE Email = ?`,
       [session.user.email]
     );
 

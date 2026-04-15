@@ -42,7 +42,7 @@ export async function GET(req: Request) {
         Email AS email,
         Name AS name,
         CooldownUntil AS cooldownEndsAt
-      FROM Users
+      FROM User
     `;
     const params: string[] = [];
 
@@ -95,7 +95,7 @@ export async function PATCH(req: Request) {
     }
 
     const [result] = await db.query<ResultSetHeader>(
-      `UPDATE Users
+      `UPDATE User
        SET CooldownUntil = DATE_ADD(NOW(), INTERVAL ? DAY)
        WHERE Email = ?`,
       [cooldownDays, userId]
@@ -106,7 +106,7 @@ export async function PATCH(req: Request) {
     }
 
     const [updatedRows] = await db.query<RowDataPacket[]>(
-      `SELECT CooldownUntil AS cooldownEndsAt FROM Users WHERE Email = ? LIMIT 1`,
+      `SELECT CooldownUntil AS cooldownEndsAt FROM User WHERE Email = ? LIMIT 1`,
       [userId]
     );
 

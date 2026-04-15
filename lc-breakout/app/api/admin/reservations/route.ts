@@ -43,9 +43,9 @@ export async function GET(req: Request) {
          ts.SlotID AS slotId,
          ts.StartTime AS startTime,
          ts.EndTime AS endTime
-       FROM Reservations r
-       JOIN TimeSlots ts ON ts.SlotID = r.SlotID
-       LEFT JOIN Users u ON u.Email = r.Email
+       FROM Reservation r
+       JOIN TimeSlot ts ON ts.SlotID = r.SlotID
+       LEFT JOIN User u ON u.Email = r.Email
        ${whereClause}
        ORDER BY r.ReservationDate, ts.StartTime, r.RoomID`,
       params
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
     }
 
     const [slotRows] = await db.query<RowDataPacket[]>(
-      `SELECT SlotID FROM TimeSlots WHERE SlotID = ? LIMIT 1`,
+      `SELECT SlotID FROM TimeSlot WHERE SlotID = ? LIMIT 1`,
       [normalizedSlot]
     );
 
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
 
     const [conflicts] = await db.query<RowDataPacket[]>(
       `SELECT ReservationID
-       FROM Reservations
+       FROM Reservation
        WHERE RoomID = ? AND SlotID = ? AND ReservationDate = ?
        LIMIT 1`,
       [normalizedRoom, normalizedSlot, date]
@@ -115,25 +115,25 @@ export async function POST(req: Request) {
     }
 
     const [userRows] = await db.query<RowDataPacket[]>(
-      `SELECT Email FROM Users WHERE Email = ? LIMIT 1`,
+      `SELECT Email FROM User WHERE Email = ? LIMIT 1`,
       [normalizedEmail]
     );
 
     if (userRows.length === 0) {
       await db.query(
-        `INSERT INTO Users (GoogleID, Email, Name, CreatedAt)
+        `INSERT INTO User (GoogleID, Email, Name, CreatedAt)
          VALUES (?, ?, ?, NOW())`,
         [null, normalizedEmail, normalizedName || normalizedEmail]
       );
     } else if (normalizedName) {
       await db.query(
-        `UPDATE Users SET Name = ? WHERE Email = ?`,
+        `UPDATE User SET Name = ? WHERE Email = ?`,
         [normalizedName, normalizedEmail]
       );
     }
 
     const [result] = await db.query<ResultSetHeader>(
-      `INSERT INTO Reservations (SlotID, Email, RoomID, ReservationDate, CreatedAt)
+      `INSERT INTO Reservation (SlotID, Email, RoomID, ReservationDate, CreatedAt)
        VALUES (?, ?, ?, ?, NOW())`,
       [normalizedSlot, normalizedEmail, normalizedRoom, date]
     );
@@ -161,7 +161,7 @@ export async function DELETE(req: Request) {
 
     // First, get the user's email from the reservation
     const [reservationRows] = await db.query<RowDataPacket[]>(
-      `SELECT Email FROM Reservations WHERE ReservationID = ?`,
+      `SELECT Email FROM Reservation WHERE ReservationID = ?`,
       [reservationId]
     );
 
@@ -173,7 +173,7 @@ export async function DELETE(req: Request) {
 
     // Delete the reservation
     const [result] = await db.query<ResultSetHeader>(
-      `DELETE FROM Reservations WHERE ReservationID = ?`,
+      `DELETE FROM Reservation WHERE ReservationID = ?`,
       [reservationId]
     );
 
@@ -183,7 +183,7 @@ export async function DELETE(req: Request) {
 
     // Reset the user's cooldown to 3 minutes
     await db.query(
-      `UPDATE Users SET CooldownUntil = DATE_ADD(NOW(), INTERVAL 3 MINUTE) WHERE Email = ?`,
+      `UPDATE User SET CooldownUntil = DATE_ADD(NOW(), INTERVAL 3 MINUTE) WHERE Email = ?`,
       [userEmail]
     );
 

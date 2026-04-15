@@ -36,8 +36,8 @@ export async function GET(req: Request) {
         CASE WHEN SUM(CASE WHEN r.RoomID = 1 THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS Room1,
         CASE WHEN SUM(CASE WHEN r.RoomID = 2 THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS Room2,
         CASE WHEN SUM(CASE WHEN r.RoomID = 3 THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS Room3
-      FROM TimeSlots ts
-      LEFT JOIN Reservations r
+      FROM TimeSlot ts
+      LEFT JOIN Reservation r
         ON ts.SlotID = r.SlotID
         AND r.ReservationDate = ?
       WHERE ts.DayOfWeek = DAYOFWEEK(?) - 1
