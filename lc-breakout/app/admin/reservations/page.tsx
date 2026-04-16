@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import ReservationsTable from "../components/ReservationsTable";
 import { AdminReservation, PeriodOption } from "../lib/types";
@@ -18,6 +18,7 @@ interface ApiPeriod {
 
 export default function ReservationsPage() {
   const { isAuthorized, isCheckingAuth } = useAdminGuard();
+  const reservationsSectionRef = useRef<HTMLDivElement | null>(null);
   const [reservations, setReservations] = useState<AdminReservation[]>([]);
   const [isLoadingReservations, setIsLoadingReservations] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -224,6 +225,15 @@ export default function ReservationsPage() {
     return reservations.filter((reservation) => reservation.date === date);
   };
 
+  const scrollToReservations = () => {
+    window.requestAnimationFrame(() => {
+      reservationsSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  };
+
   if (isCheckingAuth || !isAuthorized) {
     return (
       <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100 flex items-center justify-center">
@@ -312,6 +322,7 @@ export default function ReservationsPage() {
                             onClick={() => {
                               setSelectedDate(dateStr);
                               setNewReservation((prev) => ({ ...prev, date: dateStr }));
+                              scrollToReservations();
                             }}
                           >
                             <span className={`font-semibold text-sm ${isSelected ? "text-white" : "text-gray-900"}`}>
@@ -483,7 +494,10 @@ export default function ReservationsPage() {
         </div>
 
         {selectedDate && (
-          <div className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
+          <div
+            ref={reservationsSectionRef}
+            className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200"
+          >
             <div className="px-6 py-4 bg-linear-to-r from-red-600 to-red-700">
               <h3 className="text-lg font-bold text-white">
                 Reservations for {new Date(selectedDate).toLocaleDateString("en-US", {
