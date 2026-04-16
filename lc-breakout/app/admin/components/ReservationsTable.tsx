@@ -9,28 +9,35 @@ interface Reservation {
   date: string;
   startTime: string;
   endTime: string;
+  slotId?: number;
 }
 
 interface ReservationsTableProps {
   selectedDate: string;
   reservations: Reservation[];
   onRemove: (id: string, name: string) => void;
+  onEdit: (reservation: Reservation) => void;
 }
 
 export default function ReservationsTable({
   selectedDate,
   reservations,
   onRemove,
+  onEdit,
 }: ReservationsTableProps) {
   const dayReservations = reservations.filter((res) => res.date === selectedDate);
 
   const formattedDate = selectedDate
-    ? new Date(selectedDate).toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+    ? (() => {
+        const [year, month, day] = selectedDate.split("-").map(Number);
+        const date = new Date(year, month - 1, day);
+        return date.toLocaleDateString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+      })()
     : "";
 
   return (
@@ -119,14 +126,22 @@ export default function ReservationsTable({
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() =>
-                          onRemove(reservation.id, reservation.guestName)
-                        }
-                        className="px-3 py-1 text-red-600 hover:bg-red-100 rounded transition duration-200 text-sm font-semibold cursor-pointer"
-                      >
-                        Cancel
-                      </button>
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          onClick={() => onEdit(reservation)}
+                          className="px-3 py-1 text-blue-600 hover:bg-blue-100 rounded transition duration-200 text-sm font-semibold cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() =>
+                            onRemove(reservation.id, reservation.guestName)
+                          }
+                          className="px-3 py-1 text-red-600 hover:bg-red-100 rounded transition duration-200 text-sm font-semibold cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

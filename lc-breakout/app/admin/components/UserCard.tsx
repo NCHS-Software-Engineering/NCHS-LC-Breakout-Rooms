@@ -9,12 +9,26 @@ interface UserCardProps {
     firstName: string;
     lastName: string;
     cooldownEndsAt?: string | null;
+    role?: "admin" | "teacher" | "student";
   };
   onSetCooldown: (userId: string, days: number) => void;
 }
 
 export default function UserCard({ user, onSetCooldown }: UserCardProps) {
   const [cooldownDays, setCooldownDays] = useState("");
+
+  const getRoleBadgeColor = (role?: string) => {
+    switch (role) {
+      case "admin":
+        return "bg-purple-100 text-purple-800";
+      case "teacher":
+        return "bg-blue-100 text-blue-800";
+      case "student":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
 
   const handleSetCooldown = () => {
     const days = parseInt(cooldownDays, 10);
@@ -58,9 +72,16 @@ export default function UserCard({ user, onSetCooldown }: UserCardProps) {
     <div className="bg-white rounded-lg shadow-lg p-5 hover:shadow-xl transition-shadow duration-200">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex-1">
-          <h3 className="text-lg font-bold text-gray-900">
-            {user.firstName} {user.lastName}
-          </h3>
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="text-lg font-bold text-gray-900">
+              {user.firstName} {user.lastName}
+            </h3>
+            {user.role && (
+              <span className={`text-xs font-bold px-2 py-1 rounded ${getRoleBadgeColor(user.role)}`}>
+                {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+              </span>
+            )}
+          </div>
           <p className="text-sm text-gray-600 mt-1">
             <span className="font-semibold">Email:</span> {user.email}
           </p>

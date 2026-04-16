@@ -200,12 +200,16 @@ export default function Reports() {
           <div className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
             <div className="px-6 py-4 bg-linear-to-r from-red-600 to-red-700">
               <h3 className="text-lg font-bold text-white">
-                Usage History for {new Date(selectedDate).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+                Usage History for {(() => {
+                  const [year, month, day] = selectedDate.split("-").map(Number);
+                  const date = new Date(year, month - 1, day);
+                  return date.toLocaleDateString("en-US", {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  });
+                })()}
               </h3>
             </div>
             <div className="p-6">
