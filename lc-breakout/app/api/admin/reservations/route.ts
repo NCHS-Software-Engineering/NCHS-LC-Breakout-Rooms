@@ -80,14 +80,30 @@ export async function POST(req: Request) {
 
     const { email, guestName, roomNumber, date, slotId } = await req.json();
 
-    if (!email || !roomNumber || !date || !slotId) {
+    if (!guestName || !roomNumber || !date || !slotId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const normalizedEmail = String(email).trim().toLowerCase();
-    const normalizedName = String(guestName || "").trim();
+    let normalizedEmail = email ? String(email).trim().toLowerCase() : "";
+    const normalizedName = String(guestName).trim();
     const normalizedRoom = Number(roomNumber);
     const normalizedSlot = Number(slotId);
+
+    // If no email provided, try to find user by name
+    if (!normalizedEmail && normalizedName) {
+      const [nameMatch] = await db.query<RowDataPacket[]>(
+        `SELECT Email FROM User WHERE Name = ? LIMIT 1`,
+        [normalizedName]
+      );
+      if (nameMatch.length > 0) {
+        normalizedEmail = nameMatch[0].Email;
+      }
+    }
+
+    // Email is required either from input or from name lookup
+    if (!normalizedEmail) {
+      return NextResponse.json({ error: "Email is required. User not found in database." }, { status: 400 });
+    }
 
     if (!normalizedEmail.includes("@") || Number.isNaN(normalizedRoom) || Number.isNaN(normalizedSlot)) {
       return NextResponse.json({ error: "Invalid reservation data" }, { status: 400 });
@@ -191,5 +207,61 @@ export async function DELETE(req: Request) {
   } catch (error) {
     console.error("Admin reservations DELETE error:", error);
     return NextResponse.json({ error: "Failed to delete reservation" }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: Request) {
+  try {
+    const { errorResponse } = await requireAdminSession();
+    if (errorResponse) {
+      return errorResponse;
+    }
+
+    const { reservationId, email, roomNumber, slotId, date } = await req.json();
+
+    if (!reservationId || !email || !roomNumber || !slotId || !date) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedRoom = Number(roomNumber);
+    const normalizedSlot = Number(slotId);
+    const reservationIdNum = Number(reservationId);
+
+    if (!normalizedEmail.includes("@") || Number.isNaN(normalizedRoom) || Number.isNaN(normalizedSlot) || Number.isNaN(reservationIdNum)) {
+      return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+    }
+
+    // Check if reservation exists
+    const [existingReservation] = await db.query<RowDataPacket[]>(
+      `SELECT ReservationID FROM Reservation WHERE ReservationID = ?`,
+      [reservationIdNum]
+    );
+
+    if (existingReservation.length === 0) {
+      return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
+    }
+
+    // Check if the new slot/room combination is already taken (excluding current reservation)
+    const [conflicts] = await db.query<RowDataPacket[]>(
+      `SELECT ReservationID FROM Reservation 
+       WHERE RoomID = ? AND SlotID = ? AND ReservationDate = ? AND ReservationID != ?`,
+      [normalizedRoom, normalizedSlot, date, reservationIdNum]
+    );
+
+    if (conflicts.length > 0) {
+      return NextResponse.json({ error: "This room is already reserved for that period" }, { status: 409 });
+    }
+
+    // Update the reservation
+    await db.query(
+      `UPDATE Reservation SET Email = ?, RoomID = ?, SlotID = ?, ReservationDate = ? WHERE ReservationID = ?`,
+      [normalizedEmail, normalizedRoom, normalizedSlot, date, reservationIdNum]
+    );
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Admin reservations PATCH error:", error);
+    return NextResponse.json({ error: "Failed to update reservation" }, { status: 500 });
   }
 }

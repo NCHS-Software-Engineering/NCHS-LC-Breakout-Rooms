@@ -30,17 +30,44 @@ export const authOptions: NextAuthOptions = {
             try {
                 // Check if user already exists
                 const [rows] = await db.query<RowDataPacket[]>(
-                    `SELECT * FROM User WHERE Email = ?`,
+                    `SELECT CooldownUntil FROM User WHERE Email = ?`,
                     [user.email]
                 );
 
-                // If not, insert user
                 if (rows.length === 0) {
+                    // New user - insert into database
+                    const userName = user.name || user.email;
                     await db.query(
-                    `INSERT INTO User (GoogleID, Email, Name, CreatedAt)
-                    VALUES (?, ?, ?, NOW())`,
-                    [user.id, user.email, user.name || ""]
+                        `INSERT INTO User (GoogleID, Email, Name, CreatedAt)
+                         VALUES (?, ?, ?, NOW())`,
+                        [user.id, user.email, userName]
                     );
+
+                    // Check if there are any reservations under this name
+                    if (userName) {
+                        const [reservations] = await db.query<RowDataPacket[]>(
+                            `SELECT COUNT(*) as count FROM Reservation WHERE Email = ? LIMIT 1`,
+                            [userName] // Try to find reservations where Email field matches the name
+                        );
+
+                        // Also check if name appears in User table (admin-created entries)
+                        const [nameMatches] = await db.query<RowDataPacket[]>(
+                            `SELECT ReservationID FROM Reservation r
+                             INNER JOIN User u ON r.Email = u.Email
+                             WHERE u.Name = ? LIMIT 1`,
+                            [userName]
+                        );
+
+                        // If pre-existing reservations found, apply cooldown
+                        if (reservations[0].count > 0 || nameMatches.length > 0) {
+                            await db.query(
+                                `UPDATE User 
+                                 SET CooldownUntil = DATE_ADD(NOW(), INTERVAL 1 WEEK)
+                                 WHERE Email = ?`,
+                                [user.email]
+                            );
+                        }
+                    }
                 }
 
                 return true;

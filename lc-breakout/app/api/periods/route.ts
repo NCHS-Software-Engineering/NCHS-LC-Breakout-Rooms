@@ -23,6 +23,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Missing date parameter" }, { status: 400 });
     }
 
+    // Parse date as local time (CST) and get day of week
+    const [year, month, day] = selectedDate.split("-").map(Number);
+    const dateObj = new Date(year, month - 1, day);
+    const dayOfWeek = dateObj.getDay(); // 0 = Sunday, 1 = Monday, etc
+    const dbDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // Convert to 1-7 format (1=Monday)
+
     // 2️⃣ Query periods and reservations for that date
     const [rows] = await connection.execute<DBRow[]>(
       `
@@ -40,11 +46,11 @@ export async function GET(req: Request) {
       LEFT JOIN Reservation r
         ON ts.SlotID = r.SlotID
         AND r.ReservationDate = ?
-      WHERE ts.DayOfWeek = DAYOFWEEK(?) - 1
+      WHERE ts.DayOfWeek = ?
       GROUP BY ts.SlotID
       ORDER BY ts.PeriodNumber
       `,
-      [selectedDate, selectedDate] // ✅ parameterized query
+      [selectedDate, dbDayOfWeek] // ✅ parameterized query with local timezone calculation
     );
 
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];

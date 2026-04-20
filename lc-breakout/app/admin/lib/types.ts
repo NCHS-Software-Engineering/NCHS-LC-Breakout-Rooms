@@ -33,6 +33,7 @@ export interface ManagedUser {
   firstName: string;
   lastName: string;
   cooldownEndsAt?: string | null;
+  role?: "admin" | "teacher" | "student";
 }
 
 export interface PeriodOption {

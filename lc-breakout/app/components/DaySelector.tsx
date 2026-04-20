@@ -13,7 +13,8 @@ export default function DaySelector({ selectedDay, onDaySelect }: DaySelectorPro
   const getDateForDay = (day: string) => {
     const dateStr = getSelectedDate(day);
     if (!dateStr) return "";
-    const date = new Date(dateStr + "T00:00:00");
+    const [year, month, dayNum] = dateStr.split("-").map(Number);
+    const date = new Date(year, month - 1, dayNum);
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
