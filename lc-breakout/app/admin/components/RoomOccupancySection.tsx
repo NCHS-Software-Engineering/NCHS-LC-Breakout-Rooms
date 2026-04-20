@@ -74,7 +74,7 @@ export default function RoomOccupancySection({ rooms }: RoomOccupancySectionProp
                     : "bg-green-100 text-green-700"
                 }`}
               >
-                {room.currentOccupant ? "Occupied" : "Empty"}
+                {room.currentOccupant ? "Reserved" : "Empty"}
               </div>
             </div>
 

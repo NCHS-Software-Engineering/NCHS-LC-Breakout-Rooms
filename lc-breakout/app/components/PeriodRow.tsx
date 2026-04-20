@@ -2,14 +2,15 @@
 
 import { Period, SelectedRoom } from "@/types";
 import RoomCell from "./RoomCell";
-import { useState } from "react";
 
 interface PeriodRowProps {
   period: Period;
   index: number;
   selectedRoom: SelectedRoom | null;
   selectedDate: string;
+  isAdmin: boolean;
   onRoomSelect: (selection: SelectedRoom) => void;
+  onReservedRoomSelect: (selection: SelectedRoom) => void;
 }
 
 export default function PeriodRow({
@@ -17,7 +18,9 @@ export default function PeriodRow({
   index,
   selectedRoom,
   selectedDate,
+  isAdmin,
   onRoomSelect,
+  onReservedRoomSelect,
 }: PeriodRowProps) {
   
   const time = `${period.StartTime} - ${period.EndTime}`;
@@ -38,7 +41,9 @@ export default function PeriodRow({
         time={time}
         date={selectedDate}
         slotID={period.SlotID}
+        isAdmin={isAdmin}
         onRoomSelect={onRoomSelect}
+        onReservedRoomSelect={onReservedRoomSelect}
       />
       <RoomCell
         isVacant={period.Room2}
@@ -50,7 +55,9 @@ export default function PeriodRow({
         time={time}
         date={selectedDate}
         slotID={period.SlotID}
+        isAdmin={isAdmin}
         onRoomSelect={onRoomSelect}
+        onReservedRoomSelect={onReservedRoomSelect}
       />
       <RoomCell
         isVacant={period.Room3}
@@ -62,7 +69,9 @@ export default function PeriodRow({
         time={time}
         date={selectedDate}
         slotID={period.SlotID}
+        isAdmin={isAdmin}
         onRoomSelect={onRoomSelect}
+        onReservedRoomSelect={onReservedRoomSelect}
       />
     </tr>
   );
