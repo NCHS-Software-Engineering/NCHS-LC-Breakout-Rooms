@@ -38,8 +38,8 @@ export const authOptions: NextAuthOptions = {
                     // New user - insert into database
                     const userName = user.name || user.email;
                     await db.query(
-                        `INSERT INTO User (GoogleID, Email, Name, CreatedAt)
-                         VALUES (?, ?, ?, NOW())`,
+                        `INSERT INTO User (GoogleID, Email, Name, CreatedAt, IsAdmin)
+                         VALUES (?, ?, ?, NOW(), FALSE)`,
                         [user.id, user.email, userName]
                     );
 
@@ -58,11 +58,11 @@ export const authOptions: NextAuthOptions = {
                             [userName]
                         );
 
-                        // If pre-existing reservations found, apply cooldown
-                        if (reservations[0].count > 0 || nameMatches.length > 0) {
+                        // If pre-existing reservations found, apply cooldown (unless user is admin)
+                        if ((reservations[0].count > 0 || nameMatches.length > 0) && !ADMIN_EMAIL_ALLOWLIST.has(user.email?.toLowerCase() || "")) {
                             await db.query(
                                 `UPDATE User 
-                                 SET CooldownUntil = DATE_ADD(NOW(), INTERVAL 1 WEEK)
+                                 SET CooldownUntil = DATE_ADD(NOW(), INTERVAL 3 DAY)
                                  WHERE Email = ?`,
                                 [user.email]
                             );
@@ -83,21 +83,36 @@ export const authOptions: NextAuthOptions = {
                 const email = user.email || "";
                 const normalizedEmail = email.toLowerCase();
                 
-                // Admin: only explicit trusted email allowlist.
-                if (ADMIN_EMAIL_ALLOWLIST.has(normalizedEmail)) {
-                    token.role = "admin";
+                try {
+                    // Check if user is an admin in the database
+                    const [rows] = await db.query<RowDataPacket[]>(
+                        `SELECT IsAdmin FROM User WHERE Email = ? LIMIT 1`,
+                        [normalizedEmail]
+                    );
+
+                    const isAdminInDb = rows.length > 0 && rows[0].IsAdmin;
+
+                    // Admin: check database IsAdmin column first, then fallback to email allowlist
+                    if (isAdminInDb || ADMIN_EMAIL_ALLOWLIST.has(normalizedEmail)) {
+                        token.role = "admin";
+                    }
+                    // Teacher: email contains "naperville203" but not "stu.naperville203"
+                    else if (normalizedEmail.includes("naperville203") && !normalizedEmail.includes("stu.naperville203")) {
+                        token.role = "teacher";
+                    }
+                    // Student: email contains "stu.naperville203"
+                    else if (normalizedEmail.includes("stu.naperville203")) {
+                        token.role = "student";
+                    }
+                    
+                    token.email = normalizedEmail;
+                    token.name = name;
+                } catch (error) {
+                    console.error("JWT callback error:", error);
+                    token.email = normalizedEmail;
+                    token.name = name;
+                    token.role = "student"; // Default to student on error
                 }
-                // Teacher: email contains "naperville203" but not "stu.naperville203"
-                else if (normalizedEmail.includes("naperville203") && !normalizedEmail.includes("stu.naperville203")) {
-                    token.role = "teacher";
-                }
-                // Student: email contains "stu.naperville203"
-                else if (normalizedEmail.includes("stu.naperville203")) {
-                    token.role = "student";
-                }
-                
-                token.email = normalizedEmail;
-                token.name = name;
             }
             return token;
         },

@@ -34,8 +34,8 @@ export default function UserInfo() {
 
   if (!session) {
     return (
-      <div className="text-center p-4">
-        <p className="text-gray-600">Please log in to see your role</p>
+      <div className="bg-red-400 p-6 rounded-lg shadow-md mb-6 border-red-400 text-center">
+        <p className="text-lg font-semibold text-red-900">Please sign in to see your role</p>
       </div>
     );
   }
