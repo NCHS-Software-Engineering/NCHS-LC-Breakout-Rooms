@@ -7,7 +7,29 @@ type UserRow = RowDataPacket & {
   email: string;
   name: string | null;
   cooldownEndsAt: string | null;
+  isAdmin: boolean;
 };
+
+const ADMIN_EMAILS = ["nsamal@stu.naperville203.org", "hhliu@stu.naperville203.org"];
+const ADMIN_EMAIL_ALLOWLIST = new Set(ADMIN_EMAILS.map((email) => email.toLowerCase()));
+
+function getUserRole(email: string, isAdmin: boolean): "admin" | "teacher" | "student" {
+  const normalizedEmail = email.toLowerCase();
+  
+  // Check database IsAdmin column first
+  if (isAdmin) {
+    return "admin";
+  } else if (ADMIN_EMAIL_ALLOWLIST.has(normalizedEmail)) {
+    // Fallback to email allowlist for backward compatibility
+    return "admin";
+  } else if (normalizedEmail.includes("naperville203") && !normalizedEmail.includes("stu.naperville203")) {
+    return "teacher";
+  } else if (normalizedEmail.includes("stu.naperville203")) {
+    return "student";
+  }
+  
+  return "student"; // Default to student for external emails
+}
 
 function splitName(name: string | null, fallback: string) {
   const value = (name || "").trim();
@@ -36,24 +58,37 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const query = (url.searchParams.get("query") || "").trim();
     const searchType = url.searchParams.get("searchType") === "id" ? "id" : "name";
+    const cooldownFilter = url.searchParams.get("cooldownFilter") || ""; // "active", "all", or empty
+    const roleFilter = url.searchParams.get("roleFilter") || ""; // "admin", "student", or empty
 
     let sql = `
       SELECT
         Email AS email,
         Name AS name,
-        CooldownUntil AS cooldownEndsAt
+        CooldownUntil AS cooldownEndsAt,
+        IsAdmin AS isAdmin
       FROM User
     `;
     const params: string[] = [];
+    const conditions: string[] = [];
 
     if (query) {
       if (searchType === "id") {
-        sql += " WHERE Email LIKE ? ";
+        conditions.push("Email LIKE ?");
         params.push(`%${query}%`);
       } else {
-        sql += " WHERE Name LIKE ? OR Email LIKE ? ";
+        conditions.push("(Name LIKE ? OR Email LIKE ?)");
         params.push(`%${query}%`, `%${query}%`);
       }
+    }
+
+    // Add cooldown filter
+    if (cooldownFilter === "active") {
+      conditions.push("CooldownUntil IS NOT NULL AND CooldownUntil > NOW()");
+    }
+
+    if (conditions.length > 0) {
+      sql += " WHERE " + conditions.join(" AND ");
     }
 
     sql += " ORDER BY Name IS NULL, Name, Email LIMIT 100";
@@ -63,6 +98,7 @@ export async function GET(req: Request) {
     const users = rows.map((row) => {
       const emailPrefix = row.email.split("@")[0] || row.email;
       const parsedName = splitName(row.name, emailPrefix);
+      const role = getUserRole(row.email, row.isAdmin);
 
       return {
         id: row.email,
@@ -70,7 +106,14 @@ export async function GET(req: Request) {
         firstName: parsedName.firstName,
         lastName: parsedName.lastName,
         cooldownEndsAt: row.cooldownEndsAt,
+        role,
       };
+    }).filter((user) => {
+      // Apply role filter on frontend after role determination
+      if (roleFilter && roleFilter !== user.role) {
+        return false;
+      }
+      return true;
     });
 
     return NextResponse.json({ users });
@@ -117,5 +160,49 @@ export async function PATCH(req: Request) {
   } catch (error) {
     console.error("Admin users PATCH error:", error);
     return NextResponse.json({ error: "Failed to update user cooldown" }, { status: 500 });
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const { errorResponse } = await requireAdminSession();
+    if (errorResponse) {
+      return errorResponse;
+    }
+
+    const { userId, isAdmin } = await req.json();
+
+    if (!userId || typeof isAdmin !== "boolean") {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    }
+
+    // Prevent removing admin status from users
+    if (!isAdmin) {
+      return NextResponse.json({ error: "Cannot remove admin status from users" }, { status: 403 });
+    }
+
+    const [result] = await db.query<ResultSetHeader>(
+      `UPDATE User
+       SET IsAdmin = ?
+       WHERE Email = ?`,
+      [isAdmin, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const [updatedRows] = await db.query<RowDataPacket[]>(
+      `SELECT IsAdmin FROM User WHERE Email = ? LIMIT 1`,
+      [userId]
+    );
+
+    return NextResponse.json({
+      success: true,
+      isAdmin: updatedRows[0]?.IsAdmin || false,
+    });
+  } catch (error) {
+    console.error("Admin users PUT error:", error);
+    return NextResponse.json({ error: "Failed to update user admin status" }, { status: 500 });
   }
 }

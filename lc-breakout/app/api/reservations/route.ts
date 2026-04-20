@@ -74,12 +74,15 @@ export async function POST(req: Request) {
       [slotId, session.user.email, roomId, date]
     );
 
-    await db.query(
-      `UPDATE User 
-      SET CooldownUntil = DATE_ADD(NOW(), INTERVAL 1 WEEK)
-      WHERE Email = ?`,
-      [session.user.email]
-    );
+    // Only apply cooldown if user is not an admin
+    if (session.user?.role !== "admin") {
+      await db.query(
+        `UPDATE User 
+        SET CooldownUntil = DATE_ADD(NOW(), INTERVAL 3 DAY)
+        WHERE Email = ?`,
+        [session.user.email]
+      );
+    }
 
     return NextResponse.json({ success: true });
 

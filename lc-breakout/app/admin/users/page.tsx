@@ -12,6 +12,8 @@ export default function ManageUsersPage() {
   const { isAuthorized, isCheckingAuth } = useAdminGuard();
   const [searchType, setSearchType] = useState<"name" | "id">("name");
   const [searchQuery, setSearchQuery] = useState("");
+  const [cooldownFilter, setCooldownFilter] = useState<"active" | "all">("active"); // Default to active
+  const [roleFilter, setRoleFilter] = useState<"" | "admin" | "student">("");
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -27,6 +29,8 @@ export default function ManageUsersPage() {
         const params = new URLSearchParams({
           searchType,
           query: normalizedQuery,
+          cooldownFilter,
+          roleFilter,
         });
         const response = await fetch(`/api/admin/users?${params.toString()}`, {
           cache: "no-store",
@@ -47,7 +51,7 @@ export default function ManageUsersPage() {
     };
 
     loadUsers();
-  }, [isAuthorized, normalizedQuery, searchType]);
+  }, [isAuthorized, normalizedQuery, searchType, cooldownFilter, roleFilter]);
 
   const filteredUsers = useMemo(() => {
     return users;
@@ -79,6 +83,16 @@ export default function ManageUsersPage() {
     }
   };
 
+  const handleToggleAdmin = async (userId: string, isAdmin: boolean) => {
+    setUsers((prevUsers) =>
+      prevUsers.map((user) =>
+        user.id === userId
+          ? { ...user, role: isAdmin ? "admin" : "student" }
+          : user
+      )
+    );
+  };
+
   if (isCheckingAuth || !isAuthorized) {
     return (
       <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100 flex items-center justify-center">
@@ -99,7 +113,7 @@ export default function ManageUsersPage() {
     return (
       <div className="space-y-4">
         {filteredUsers.map((user) => (
-          <UserCard key={user.id} user={user} onSetCooldown={handleSetCooldown} />
+          <UserCard key={user.id} user={user} onSetCooldown={handleSetCooldown} onToggleAdmin={handleToggleAdmin} />
         ))}
       </div>
     );
@@ -116,6 +130,67 @@ export default function ManageUsersPage() {
           onSearchTypeChange={setSearchType}
           onSearchQueryChange={setSearchQuery}
         />
+
+        {/* Filter Controls */}
+        <div className="mt-6 bg-white rounded-lg shadow-md p-4 flex flex-wrap gap-4 items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-gray-700">Cooldown Status:</span>
+            <button
+              onClick={() => setCooldownFilter("active")}
+              className={`px-4 py-2 rounded-lg font-semibold transition ${
+                cooldownFilter === "active"
+                  ? "bg-red-600 text-white shadow-md"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Active Only
+            </button>
+            <button
+              onClick={() => setCooldownFilter("all")}
+              className={`px-4 py-2 rounded-lg font-semibold transition ${
+                cooldownFilter === "all"
+                  ? "bg-red-600 text-white shadow-md"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              All Users
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-gray-700">Role:</span>
+            <button
+              onClick={() => setRoleFilter("")}
+              className={`px-4 py-2 rounded-lg font-semibold transition ${
+                roleFilter === ""
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              All Roles
+            </button>
+            <button
+              onClick={() => setRoleFilter("admin")}
+              className={`px-4 py-2 rounded-lg font-semibold transition ${
+                roleFilter === "admin"
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Admins Only
+            </button>
+            <button
+              onClick={() => setRoleFilter("student")}
+              className={`px-4 py-2 rounded-lg font-semibold transition ${
+                roleFilter === "student"
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Students Only
+            </button>
+          </div>
+        </div>
 
         <div className="mt-6">{renderContent()}</div>
       </div>

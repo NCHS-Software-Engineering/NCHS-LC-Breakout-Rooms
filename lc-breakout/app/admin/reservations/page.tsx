@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import ReservationsTable from "../components/ReservationsTable";
+import ReservationEditModal from "../components/ReservationEditModal";
 import { AdminReservation, PeriodOption } from "../lib/types";
 import { useAdminGuard } from "../lib/useAdminGuard";
 
@@ -32,9 +33,11 @@ export default function ReservationsPage() {
     return `${year}-${month}-${day}`;
   };
   const [selectedDate, setSelectedDate] = useState(getLocalDateString(new Date()));
+  const reservationsRef = useRef<HTMLDivElement>(null);
 
   const [periodOptions, setPeriodOptions] = useState<PeriodOption[]>([]);
   const [isLoadingPeriods, setIsLoadingPeriods] = useState(false);
+  const [isLookingUpName, setIsLookingUpName] = useState(false);
 
   const [newReservation, setNewReservation] = useState({
     guestName: "",
@@ -44,10 +47,16 @@ export default function ReservationsPage() {
     slotId: "",
   });
 
-  const loadReservations = async () => {
+  const [suggestedEmail, setSuggestedEmail] = useState("");
+
+  const [editingReservation, setEditingReservation] = useState<AdminReservation | null>(null);
+  const [isEditingReservation, setIsEditingReservation] = useState(false);
+
+  const loadReservations = async (date?: string) => {
     setIsLoadingReservations(true);
     try {
-      const response = await fetch("/api/admin/reservations", { cache: "no-store" });
+      const queryParam = date ? `?date=${encodeURIComponent(date)}` : "";
+      const response = await fetch(`/api/admin/reservations${queryParam}`, { cache: "no-store" });
       if (!response.ok) {
         throw new Error("Failed to fetch reservations");
       }
@@ -67,6 +76,14 @@ export default function ReservationsPage() {
       loadReservations();
     }
   }, [isAuthorized]);
+
+  useEffect(() => {
+    if (selectedDate && reservationsRef.current) {
+      setTimeout(() => {
+        reservationsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 0);
+    }
+  }, [selectedDate]);
 
   useEffect(() => {
     if (!isAuthorized || !newReservation.date) {
@@ -160,9 +177,49 @@ export default function ReservationsPage() {
     }
   };
 
+  const handleGuestNameChange = async (name: string) => {
+    setNewReservation({
+      ...newReservation,
+      guestName: name,
+    });
+
+    if (!name.trim()) {
+      setSuggestedEmail("");
+      return;
+    }
+
+    // Look up user by name using existing users endpoint
+    setIsLookingUpName(true);
+    try {
+      const response = await fetch(`/api/admin/users?query=${encodeURIComponent(name)}&searchType=name`, {
+        cache: "no-store",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.users && data.users.length > 0) {
+          // Store the suggestion but don't auto-fill yet
+          setSuggestedEmail(data.users[0].email);
+        } else {
+          setSuggestedEmail("");
+        }
+      }
+    } catch (error) {
+      console.error("Error looking up user:", error);
+      setSuggestedEmail("");
+    } finally {
+      setIsLookingUpName(false);
+    }
+  };
+
   const handleCreateReservation = async () => {
-    if (!newReservation.guestName || !newReservation.email || !newReservation.date || !newReservation.slotId) {
-      window.alert("Please fill in all required fields");
+    if (!newReservation.guestName || !newReservation.date || !newReservation.slotId) {
+      window.alert("Please fill in guest name, date, and period");
+      return;
+    }
+
+    if (!newReservation.email) {
+      window.alert("Please provide an email or select a user from the lookup");
       return;
     }
 
@@ -198,6 +255,49 @@ export default function ReservationsPage() {
       window.alert("Failed to create reservation");
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleEditReservation = (reservation: AdminReservation) => {
+    setEditingReservation(reservation);
+  };
+
+  const handleSaveEditedReservation = async (updates: {
+    email: string;
+    roomNumber: number;
+    slotId: number;
+    date: string;
+  }) => {
+    if (!editingReservation) return;
+
+    setIsEditingReservation(true);
+    try {
+      const response = await fetch("/api/admin/reservations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reservationId: editingReservation.id,
+          email: updates.email,
+          roomNumber: updates.roomNumber,
+          slotId: updates.slotId,
+          date: updates.date,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        window.alert(errorData.error || "Failed to update reservation");
+        return;
+      }
+
+      await loadReservations();
+      window.alert("Reservation updated successfully");
+      setEditingReservation(null);
+    } catch (error) {
+      console.error(error);
+      window.alert("Failed to update reservation");
+    } finally {
+      setIsEditingReservation(false);
     }
   };
 
@@ -348,7 +448,11 @@ export default function ReservationsPage() {
                     {newReservation.date && (
                       <div className="mt-6 p-4 bg-white border-2 border-red-200 rounded-lg shadow-sm">
                         <h5 className="font-bold text-gray-900 mb-2 text-sm">
-                          Selected: {new Date(newReservation.date + "T00:00:00").toLocaleDateString()}
+                          Selected: {(() => {
+                            const [year, month, day] = newReservation.date.split("-").map(Number);
+                            const date = new Date(year, month - 1, day);
+                            return date.toLocaleDateString();
+                          })()}
                         </h5>
                         <p className="text-xs text-gray-600">
                           Pick a room and period, then create the reservation.
@@ -378,19 +482,19 @@ export default function ReservationsPage() {
                           type="text"
                           value={newReservation.guestName}
                           onChange={(event) =>
-                            setNewReservation({
-                              ...newReservation,
-                              guestName: event.target.value,
-                            })
+                            handleGuestNameChange(event.target.value)
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
                           placeholder="John Doe"
                         />
+                        {isLookingUpName && (
+                          <p className="text-xs text-gray-500 mt-1">Looking up user...</p>
+                        )}
                       </div>
 
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-1">
-                          Email *
+                          Email
                         </label>
                         <input
                           type="email"
@@ -404,6 +508,20 @@ export default function ReservationsPage() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
                           placeholder="john@example.com"
                         />
+                        {suggestedEmail && !newReservation.email && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setNewReservation({
+                                ...newReservation,
+                                email: suggestedEmail,
+                              })
+                            }
+                            className="mt-2 w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-gray-400 font-medium rounded-lg transition duration-200 active:scale-95 transform cursor-pointer"
+                          >
+                            Use: {suggestedEmail}
+                          </button>
+                        )}
                       </div>
 
                       <div>
@@ -517,6 +635,14 @@ export default function ReservationsPage() {
             </div>
           </div>
         )}
+
+        <ReservationEditModal
+          isOpen={editingReservation !== null}
+          reservation={editingReservation}
+          onClose={() => setEditingReservation(null)}
+          onSave={handleSaveEditedReservation}
+          isLoading={isEditingReservation}
+        />
       </div>
     </main>
   );

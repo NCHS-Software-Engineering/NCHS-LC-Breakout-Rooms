@@ -56,6 +56,29 @@ export default function ReserveInfo() {
     });
   };
 
+  // Auto-select today's day on page load
+  useEffect(() => {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, ...
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    
+    // Convert JavaScript day (0=Sun, 1=Mon...) to array index (0=Mon, 1=Tue...)
+    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+      const todayName = days[dayOfWeek - 1];
+      setSelectedDay(todayName);
+      setSelectedRoom(null);
+      // Fetch periods for today
+      const date = getSelectedDate(todayName);
+      fetch(`/api/periods?date=${date}`)
+        .then((res) => res.json())
+        .then((data) => setPeriods(data))
+        .catch((error) => {
+          console.error("Failed to fetch periods:", error);
+          setPeriods([]);
+        });
+    }
+  }, []);
+
   const handleRoomSelect = (selection: SelectedRoom) => {
     setSelectedRoom(selection);
     setSelectedReservedRoom(null);
@@ -130,7 +153,8 @@ export default function ReserveInfo() {
   const getFormattedDate = (day: string) => {
     const dateStr = getSelectedDate(day);
     if (!dateStr) return "";
-    const date = new Date(dateStr + "T00:00:00");
+    const [year, month, dayNum] = dateStr.split("-").map(Number);
+    const date = new Date(year, month - 1, dayNum);
     return date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
   };
 

@@ -13,9 +13,11 @@ export default function NavBar() {
                 <Link href="/" className="hover:underline hover:text-red-100 transition-colors">
                     Home 
                 </Link>
-                <Link href="/admin/login" className="hover:underline hover:text-red-100 transition-colors">
-                    Admin Login Form
-                </Link>
+                {session?.user?.role === "admin" && (
+                    <Link href="/admin/login" className="hover:underline hover:text-red-100 transition-colors">
+                        Admin Dashboard
+                    </Link>
+                )}
 
                {
                session ? (
