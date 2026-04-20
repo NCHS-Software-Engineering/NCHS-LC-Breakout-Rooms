@@ -7,15 +7,20 @@ type UserRow = RowDataPacket & {
   email: string;
   name: string | null;
   cooldownEndsAt: string | null;
+  isAdmin: boolean;
 };
 
 const ADMIN_EMAILS = ["nsamal@stu.naperville203.org", "hhliu@stu.naperville203.org"];
 const ADMIN_EMAIL_ALLOWLIST = new Set(ADMIN_EMAILS.map((email) => email.toLowerCase()));
 
-function getUserRole(email: string): "admin" | "teacher" | "student" {
+function getUserRole(email: string, isAdmin: boolean): "admin" | "teacher" | "student" {
   const normalizedEmail = email.toLowerCase();
   
-  if (ADMIN_EMAIL_ALLOWLIST.has(normalizedEmail)) {
+  // Check database IsAdmin column first
+  if (isAdmin) {
+    return "admin";
+  } else if (ADMIN_EMAIL_ALLOWLIST.has(normalizedEmail)) {
+    // Fallback to email allowlist for backward compatibility
     return "admin";
   } else if (normalizedEmail.includes("naperville203") && !normalizedEmail.includes("stu.naperville203")) {
     return "teacher";
@@ -60,7 +65,8 @@ export async function GET(req: Request) {
       SELECT
         Email AS email,
         Name AS name,
-        CooldownUntil AS cooldownEndsAt
+        CooldownUntil AS cooldownEndsAt,
+        IsAdmin AS isAdmin
       FROM User
     `;
     const params: string[] = [];
@@ -92,7 +98,7 @@ export async function GET(req: Request) {
     const users = rows.map((row) => {
       const emailPrefix = row.email.split("@")[0] || row.email;
       const parsedName = splitName(row.name, emailPrefix);
-      const role = getUserRole(row.email);
+      const role = getUserRole(row.email, row.isAdmin);
 
       return {
         id: row.email,
@@ -154,5 +160,49 @@ export async function PATCH(req: Request) {
   } catch (error) {
     console.error("Admin users PATCH error:", error);
     return NextResponse.json({ error: "Failed to update user cooldown" }, { status: 500 });
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const { errorResponse } = await requireAdminSession();
+    if (errorResponse) {
+      return errorResponse;
+    }
+
+    const { userId, isAdmin } = await req.json();
+
+    if (!userId || typeof isAdmin !== "boolean") {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    }
+
+    // Prevent removing admin status from users
+    if (!isAdmin) {
+      return NextResponse.json({ error: "Cannot remove admin status from users" }, { status: 403 });
+    }
+
+    const [result] = await db.query<ResultSetHeader>(
+      `UPDATE User
+       SET IsAdmin = ?
+       WHERE Email = ?`,
+      [isAdmin, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const [updatedRows] = await db.query<RowDataPacket[]>(
+      `SELECT IsAdmin FROM User WHERE Email = ? LIMIT 1`,
+      [userId]
+    );
+
+    return NextResponse.json({
+      success: true,
+      isAdmin: updatedRows[0]?.IsAdmin || false,
+    });
+  } catch (error) {
+    console.error("Admin users PUT error:", error);
+    return NextResponse.json({ error: "Failed to update user admin status" }, { status: 500 });
   }
 }

@@ -1,81 +1,65 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 export default function AdminLoginForm() {
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const router = useRouter();
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (status !== "authenticated") {
+    if (status === "loading") {
+      return;
+    }
+
+    if (status === "unauthenticated") {
+      setIsCheckingAuth(false);
       return;
     }
 
     if (session.user?.role === "admin") {
-      router.replace("/admin/dashboard");
+      setIsAuthorized(true);
+      setIsCheckingAuth(false);
       return;
     }
 
-    setError("Your account is not an administrator account.");
-  }, [router, session, status]);
+    setIsCheckingAuth(false);
+  }, [session, status]);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError("");
-    setIsLoading(true);
+  if (isCheckingAuth) {
+    return (
+      <div className="text-center py-8">
+        <svg className="animate-spin h-8 w-8 mx-auto text-red-600" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+    );
+  }
 
-    try {
-      const signInResult = await signIn("google", {
-        callbackUrl: "/admin/dashboard",
-        redirect: false,
-      });
-
-      if (signInResult?.error) {
-        setError("Sign-in failed. Please try again.");
-      } else {
-        router.push(signInResult?.url || "/admin/dashboard");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("An error occurred during login. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  if (!isAuthorized) {
+    return (
+      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 text-center">
+        <p>Please log in as an admin to access this section.</p>
+      </div>
+    );
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <div className="space-y-5">
       <p className="text-sm text-gray-600">
-        Use your school Google account to access the administrator dashboard.
+        You are logged in as an admin.
       </p>
-
-      {error ? (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-          {error}
-        </div>
-      ) : null}
-
+      
       <button
-        type="submit"
-        disabled={isLoading || status === "loading"}
-        className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+        onClick={() => router.push("/admin/dashboard")}
+        className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 cursor-pointer"
       >
-        {isLoading || status === "loading" ? (
-          <>
-            <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Signing in...
-          </>
-        ) : (
-          "Sign in with Google"
-        )}
+        Admin Dashboard
       </button>
-    </form>
+    </div>
   );
 }

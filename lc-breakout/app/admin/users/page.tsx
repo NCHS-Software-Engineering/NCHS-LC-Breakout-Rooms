@@ -83,6 +83,16 @@ export default function ManageUsersPage() {
     }
   };
 
+  const handleToggleAdmin = async (userId: string, isAdmin: boolean) => {
+    setUsers((prevUsers) =>
+      prevUsers.map((user) =>
+        user.id === userId
+          ? { ...user, role: isAdmin ? "admin" : "student" }
+          : user
+      )
+    );
+  };
+
   if (isCheckingAuth || !isAuthorized) {
     return (
       <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100 flex items-center justify-center">
@@ -103,7 +113,7 @@ export default function ManageUsersPage() {
     return (
       <div className="space-y-4">
         {filteredUsers.map((user) => (
-          <UserCard key={user.id} user={user} onSetCooldown={handleSetCooldown} />
+          <UserCard key={user.id} user={user} onSetCooldown={handleSetCooldown} onToggleAdmin={handleToggleAdmin} />
         ))}
       </div>
     );
