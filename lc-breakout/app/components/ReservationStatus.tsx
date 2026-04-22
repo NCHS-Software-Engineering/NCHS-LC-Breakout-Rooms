@@ -68,7 +68,7 @@ export default function ReservationStatus({ selectedRoom }: ReservationStatusPro
           </button>
         </div>
       ) : (
-        <div className="w-full text-center text-lg font-semibold text-gray-700">
+        <div className="w-full text-center text-lg font-semibold text-black">
           Select a room from below.
         </div>
       )}

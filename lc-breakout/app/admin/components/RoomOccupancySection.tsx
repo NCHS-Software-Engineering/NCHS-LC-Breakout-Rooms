@@ -32,7 +32,7 @@ export default function RoomOccupancySection({ rooms }: RoomOccupancySectionProp
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 lg:col-span-3 hover:shadow-xl transition-shadow duration-200 mb-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Current Room Occupancy</h2>
+        <h1 className="text-2xl font-bold text-gray-900">Current Room Occupancy</h1>
         <p className="text-gray-600 text-sm mt-1">Real-time status of all breakout rooms</p>
         <div className="mt-3 pt-3 border-t border-gray-200 flex gap-4 text-sm">
           <div>
