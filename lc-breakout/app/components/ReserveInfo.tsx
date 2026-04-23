@@ -204,8 +204,8 @@ export default function ReserveInfo() {
             ) : null}
 
             {isAdmin ? (
-              <p className="mb-4 text-sm text-gray-700">
-                Admin mode: click any reserved cell to view reservation details.
+              <p className="mb-4 text-md text-black dark:text-white">
+                Admin: click any reserved cell to view reservation details.
               </p>
             ) : null}
 
