@@ -56,11 +56,11 @@ export default function RoomCell({
 
   const stateClasses = isVacant
     ? isSelected
-      ? "bg-green-600 text-white hover:bg-green-700 cursor-pointer"
-      : "bg-green-500 text-white hover:bg-green-600 cursor-pointer"
+      ? "bg-green-800 text-white hover:bg-green-900 cursor-pointer"
+      : "bg-green-700 text-white hover:bg-green-800 cursor-pointer"
     : isAdmin
-    ? "bg-red-500 text-white hover:bg-red-600 cursor-pointer"
-    : "bg-red-500 text-white cursor-not-allowed";
+    ? "bg-red-700 text-white hover:bg-red-800 cursor-pointer"
+    : "bg-red-700 text-white cursor-not-allowed";
 
   return (
     <td onClick={handleClick} className={`${baseClasses} ${stateClasses}`}>

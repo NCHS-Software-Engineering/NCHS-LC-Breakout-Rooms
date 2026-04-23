@@ -10,11 +10,11 @@ export default function NavBar() {
         <nav className="bg-[#e50000] text-white w-full py-4 px-8 flex justify-between items-center shadow-md">
             <h1 className="text-xl font-bold">LC Breakout Rooms</h1>
             <div className="flex gap-8 items-center">
-                <Link href="/" className="hover:underline hover:text-red-100 font-bold transition-colors">
+                <Link href="/" className="hover:underline hover:text-white font-bold transition-colors">
                     Home 
                 </Link>
                 {session?.user?.role === "admin" && (
-                    <Link href="/admin/login" className="hover:underline hover:text-red-100 font-bold transition-colors">
+                    <Link href="/admin/login" className="hover:underline hover:text-white font-bold transition-colors">
                         Admin Dashboard
                     </Link>
                 )}

@@ -435,7 +435,7 @@ export default function ReservationsPage() {
                               </span>
                             )}
                             {isSelected && (
-                              <span className="text-xs font-bold text-red-100">
+                              <span className="text-xs font-bold text-white">
                                 {dayReservations.length} booking
                                 {dayReservations.length > 1 ? "s" : ""}
                               </span>
@@ -517,7 +517,7 @@ export default function ReservationsPage() {
                                 email: suggestedEmail,
                               })
                             }
-                            className="mt-2 w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-gray-400 font-medium rounded-lg transition duration-200 active:scale-95 transform cursor-pointer"
+                            className="mt-2 w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 active:scale-95 transform cursor-pointer"
                           >
                             Use: {suggestedEmail}
                           </button>
@@ -631,6 +631,12 @@ export default function ReservationsPage() {
                 selectedDate={selectedDate}
                 reservations={reservations}
                 onRemove={removeReservation}
+                onEdit={(reservation) =>
+                  handleEditReservation({
+                    ...reservation,
+                    slotId: reservation.slotId ?? 0,
+                  })
+                }
               />
             </div>
           </div>

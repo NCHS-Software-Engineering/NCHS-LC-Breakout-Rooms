@@ -183,7 +183,7 @@ export default function Reports() {
                         </span>
                       )}
                       {isSelected && (
-                        <span className="text-xs font-bold text-red-100">
+                        <span className="text-xs font-bold text-white">
                           {dayHistory.length} use
                           {dayHistory.length > 1 ? "s" : ""}
                         </span>

@@ -168,7 +168,7 @@ export default function ReserveInfo() {
 
         {selectedDay && (
           <div className="w-3/4 flex flex-col items-center">
-            <div className="mb-4 text-lg font-semibold text-blue-400">
+            <div className="mb-4 text-lg font-semibold text-[#3974b9]">
               Selected Date: {getFormattedDate(selectedDay)}
             </div>
             <ReservationStatus selectedRoom={selectedRoom} />

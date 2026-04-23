@@ -58,7 +58,7 @@ export default function UserInfo() {
           <span className={`px-3 py-1 rounded-full font-semibold ${
             session.user?.role === "admin" ? "bg-red-600 text-white" :
             session.user?.role === "teacher" ? "bg-blue-600 text-white" :
-            "bg-green-600 text-white"
+            "bg-green-700 text-white"
           }`}>
             {session.user?.role?.toUpperCase() || "STUDENT"}
           </span>
