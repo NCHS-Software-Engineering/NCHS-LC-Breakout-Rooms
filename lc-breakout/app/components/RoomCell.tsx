@@ -62,9 +62,19 @@ export default function RoomCell({
     ? "bg-red-700 text-white hover:bg-red-800 cursor-pointer"
     : "bg-red-700 text-white cursor-not-allowed";
 
+  const isInteractive = isVacant || isAdmin;
+
   return (
-    <td onClick={handleClick} className={`${baseClasses} ${stateClasses}`}>
-      {isVacant ? "Vacant" : "Reserved"}
+    <td className={`${baseClasses} ${stateClasses} p-0`}>
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={!isInteractive}
+        aria-pressed={isSelected}
+        className="flex h-full w-full items-center justify-center bg-transparent px-4 py-2 rounded-none focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-100 dark:focus-visible:ring-offset-gray-900"
+      >
+        {isVacant ? "Vacant" : "Reserved"}
+      </button>
     </td>
   );
 }

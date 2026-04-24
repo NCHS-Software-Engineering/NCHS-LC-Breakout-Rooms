@@ -9,7 +9,7 @@ interface ReservationStatusProps {
 
 export default function ReservationStatus({ selectedRoom }: ReservationStatusProps) {
 
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   const handleReserve = async () => {
   if (!selectedRoom) return;
@@ -56,10 +56,10 @@ export default function ReservationStatus({ selectedRoom }: ReservationStatusPro
   
 
   return (
-    <div className="flex flex-col items-center bg-red-400 text-black rounded-xl w-50% p-6 shadow-lg mb-4">
+    <div className="mb-4 flex w-full max-w-2xl flex-col items-center rounded-xl bg-red-400 p-4 text-black shadow-lg sm:p-6">
       {selectedRoom ? (
         <div className="flex flex-col gap-4 items-center w-full">
-          <div className="text-lg font-semibold">You are logged in as: {session?.user?.name || "not logged in"}</div>
+          <div className="text-center text-base font-semibold sm:text-lg">You are logged in as: {session?.user?.name || "not logged in"}</div>
           <button
             onClick={handleReserve}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold cursor-pointer hover:bg-blue-700 transition"
@@ -68,7 +68,7 @@ export default function ReservationStatus({ selectedRoom }: ReservationStatusPro
           </button>
         </div>
       ) : (
-        <div className="w-full text-center text-lg font-semibold text-black">
+        <div className="w-full text-center text-base font-semibold text-black sm:text-lg">
           Select a room from below.
         </div>
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { getSelectedDate, getMonday } from "../utils/date";
+import { getSelectedDate } from "../utils/date";
 
 interface DaySelectorProps {
   selectedDay: string;
@@ -19,19 +19,19 @@ export default function DaySelector({ selectedDay, onDaySelect }: DaySelectorPro
   };
 
   return (
-    <div className="mb-8 flex gap-4 justify-center flex-wrap">
+    <div className="mb-6 flex w-full flex-wrap justify-center gap-2 sm:mb-8 sm:gap-4">
       {days.map((day) => (
         <button
           key={day}
           onClick={() => onDaySelect(day)}
-          className={`px-6 py-4 rounded-lg font-semibold transition cursor-pointer w-40 flex flex-col items-center gap-1 ${
+          className={`flex min-w-[130px] flex-1 max-w-[170px] flex-col items-center gap-1 rounded-lg px-3 py-3 font-semibold transition cursor-pointer sm:px-6 sm:py-4 ${
             selectedDay === day
               ? "bg-blue-600 text-white shadow-lg"
               : "bg-gray-700 text-white hover:bg-gray-600"
           }`}
         >
-          <span className="text-base">{day}</span>
-          <span className="text-sm opacity-90">{getDateForDay(day)}</span>
+          <span className="text-sm sm:text-base">{day}</span>
+          <span className="text-xs opacity-90 sm:text-sm">{getDateForDay(day)}</span>
         </button>
       ))}
     </div>

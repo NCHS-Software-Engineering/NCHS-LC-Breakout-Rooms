@@ -24,3 +24,8 @@ body {
   color: var(--foreground);
   font-family: var(--font-montserrat), sans-serif;
 }
+
+:where(a, button, input, select, textarea, summary, [role="button"], [role="link"]):focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
+}

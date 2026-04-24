@@ -7,9 +7,10 @@ export default function NavBar() {
     const {data: session} = useSession();
 
     return (
-        <nav className="bg-[#e50000] text-white w-full py-4 px-8 flex justify-between items-center shadow-md">
-            <h1 className="text-xl font-bold">LC Breakout Rooms</h1>
-            <div className="flex gap-8 items-center">
+        <nav className="bg-[#e50000] text-white w-full px-4 py-3 shadow-md sm:px-6">
+            <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3">
+                <h1 className="text-lg font-bold sm:text-xl">LC Breakout Rooms</h1>
+                <div className="flex flex-wrap items-center gap-3 sm:gap-6">
                 <Link href="/" className="hover:underline hover:text-white font-bold transition-colors">
                     Home 
                 </Link>
@@ -36,7 +37,7 @@ export default function NavBar() {
                     </button>
                 )
                 }
-
+                </div>
             </div>
         </nav>
     );

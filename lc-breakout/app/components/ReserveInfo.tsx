@@ -159,23 +159,23 @@ export default function ReserveInfo() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-start">
-      <h1 className="text-4xl font-bold">LC Breakout Room Sign-up</h1>
-      <p className="mt-4 text-lg">Sign up for a breakout room session.</p>
+    <main className="flex w-full flex-col items-center justify-start">
+      <h1 className="text-center text-2xl font-bold sm:text-3xl lg:text-4xl">LC Breakout Room Sign-up</h1>
+      <p className="mt-3 text-center text-base sm:text-lg">Sign up for a breakout room session.</p>
 
-      <div className="flex flex-col items-center mt-8">
+      <div className="mt-6 flex w-full flex-col items-center sm:mt-8">
         <DaySelector selectedDay={selectedDay} onDaySelect={handleDaySelect} />
 
         {selectedDay && (
-          <div className="w-3/4 flex flex-col items-center">
-            <div className="mb-4 text-lg font-semibold text-[#3974b9]">
+          <div className="flex w-full max-w-6xl flex-col items-center">
+            <div className="mb-4 px-2 text-center text-base font-semibold text-[#3974b9] sm:text-lg">
               Selected Date: {getFormattedDate(selectedDay)}
             </div>
             <ReservationStatus selectedRoom={selectedRoom} />
             <SelectedRoomDisplay selectedRoom={selectedRoom} />
 
             {isAdmin && selectedReservedRoom ? (
-              <div className="mb-4 p-4 bg-amber-100 border-2 border-amber-500 rounded-lg text-black w-full">
+              <div className="mb-4 w-full rounded-lg border-2 border-amber-500 bg-amber-100 p-4 text-black">
                 <h3 className="font-bold text-lg mb-2">Reservation Details</h3>
                 <p className="mb-2 text-sm font-semibold">
                   {selectedReservedRoom.period} ({selectedReservedRoom.time}) - {selectedReservedRoom.room}
@@ -204,7 +204,7 @@ export default function ReserveInfo() {
             ) : null}
 
             {isAdmin ? (
-              <p className="mb-4 text-md text-black dark:text-white">
+              <p className="mb-4 px-2 text-center text-sm text-black dark:text-white sm:text-base">
                 Admin: click any reserved cell to view reservation details.
               </p>
             ) : null}
