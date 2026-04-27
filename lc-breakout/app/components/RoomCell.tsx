@@ -10,7 +10,11 @@ interface RoomCellProps {
   period: string;
   room: string;
   time: string;
+  slotID: number;   // add
+  date: string;     // add
+  isAdmin: boolean;
   onRoomSelect: (selection: SelectedRoom) => void;
+  onReservedRoomSelect: (selection: SelectedRoom) => void;
 }
 
 export default function RoomCell({
@@ -21,17 +25,30 @@ export default function RoomCell({
   period,
   room,
   time,
+  date,
+  slotID,
+  isAdmin,
   onRoomSelect,
+  onReservedRoomSelect,
 }: RoomCellProps) {
+  const selection: SelectedRoom = {
+    periodIndex,
+    roomNumber,
+    period,
+    room,
+    time,
+    date,
+    slotID,
+  };
+
   const handleClick = () => {
     if (isVacant) {
-      onRoomSelect({
-        periodIndex,
-        roomNumber,
-        period,
-        room,
-        time,
-      });
+      onRoomSelect(selection);
+      return;
+    }
+
+    if (isAdmin) {
+      onReservedRoomSelect(selection);
     }
   };
 
@@ -41,11 +58,13 @@ export default function RoomCell({
     ? isSelected
       ? "bg-green-600 text-white hover:bg-green-700 cursor-pointer"
       : "bg-green-500 text-white hover:bg-green-600 cursor-pointer"
+    : isAdmin
+    ? "bg-red-500 text-white hover:bg-red-600 cursor-pointer"
     : "bg-red-500 text-white cursor-not-allowed";
 
   return (
     <td onClick={handleClick} className={`${baseClasses} ${stateClasses}`}>
-      {isVacant ? "Vacant" : "Occupied"}
+      {isVacant ? "Vacant" : "Reserved"}
     </td>
   );
 }

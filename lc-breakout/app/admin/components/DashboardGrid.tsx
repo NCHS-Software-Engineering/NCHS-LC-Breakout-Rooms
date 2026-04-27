@@ -15,7 +15,7 @@ export default function DashboardGrid() {
 
       <DashboardCard
         title="Breakout Rooms"
-        description="Manage LC breakout room settings and reservations"
+        description="Manage currently active reservations"
         action={{
           label: "Manage Rooms",
           onClick: () => router.push("/admin/manage-rooms"),

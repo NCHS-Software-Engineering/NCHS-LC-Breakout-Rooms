@@ -4,6 +4,7 @@ export type Period = {
   PeriodName: string;
   StartTime: string;
   EndTime: string;
+  SlotID: number;
   Room1: boolean;
   Room2: boolean;
   Room3: boolean;
@@ -15,6 +16,8 @@ export type SelectedRoom = {
   period: string;
   room: string;
   time: string;
+  date: string;
+  slotID: number;
 };
 
 

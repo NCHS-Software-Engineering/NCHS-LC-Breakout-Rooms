@@ -1,7 +1,11 @@
 interface Person {
+  reservationId: string;
   id: string;
   name: string;
   email: string;
+  period?: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 interface RoomCardProps {
@@ -10,7 +14,7 @@ interface RoomCardProps {
     name: string;
     currentOccupant?: Person | null;
   };
-  onRemovePerson: (roomId: string) => void;
+  onRemovePerson: (reservationId: string) => void;
 }
 
 export default function RoomCard({ room, onRemovePerson }: RoomCardProps) {
@@ -44,10 +48,15 @@ export default function RoomCard({ room, onRemovePerson }: RoomCardProps) {
             <div className="flex-1">
               <p className="font-semibold text-gray-900">{room.currentOccupant.name}</p>
               <p className="text-gray-600 text-sm mt-1">{room.currentOccupant.email}</p>
+              {room.currentOccupant.period && room.currentOccupant.startTime && room.currentOccupant.endTime ? (
+                <p className="text-xs text-gray-500 mt-2">
+                  {room.currentOccupant.period} ({room.currentOccupant.startTime} - {room.currentOccupant.endTime})
+                </p>
+              ) : null}
             </div>
             <button
               className="ml-3 px-3 py-1 text-red-600 hover:bg-red-100 rounded transition duration-200 text-sm font-medium cursor-pointer"
-              onClick={() => onRemovePerson(room.id)}
+              onClick={() => onRemovePerson(room.currentOccupant!.reservationId)}
             >
               Remove
             </button>

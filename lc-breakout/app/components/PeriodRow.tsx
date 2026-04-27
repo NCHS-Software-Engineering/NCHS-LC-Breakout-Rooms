@@ -7,15 +7,22 @@ interface PeriodRowProps {
   period: Period;
   index: number;
   selectedRoom: SelectedRoom | null;
+  selectedDate: string;
+  isAdmin: boolean;
   onRoomSelect: (selection: SelectedRoom) => void;
+  onReservedRoomSelect: (selection: SelectedRoom) => void;
 }
 
 export default function PeriodRow({
   period,
   index,
   selectedRoom,
+  selectedDate,
+  isAdmin,
   onRoomSelect,
+  onReservedRoomSelect,
 }: PeriodRowProps) {
+  
   const time = `${period.StartTime} - ${period.EndTime}`;
 
   return (
@@ -25,34 +32,46 @@ export default function PeriodRow({
       </td>
       <td className="border border-black dark:border-gray-300 px-4 py-2">{time}</td>
       <RoomCell
-        isVacant={Number(period.Room1) === 0}
+        isVacant={period.Room1}
         isSelected={selectedRoom?.periodIndex === index && selectedRoom?.roomNumber === 1}
         periodIndex={index}
         roomNumber={1}
         period={period.PeriodName}
         room="Room 1"
         time={time}
+        date={selectedDate}
+        slotID={period.SlotID}
+        isAdmin={isAdmin}
         onRoomSelect={onRoomSelect}
+        onReservedRoomSelect={onReservedRoomSelect}
       />
       <RoomCell
-        isVacant={Number(period.Room2) === 0}
+        isVacant={period.Room2}
         isSelected={selectedRoom?.periodIndex === index && selectedRoom?.roomNumber === 2}
         periodIndex={index}
         roomNumber={2}
         period={period.PeriodName}
         room="Room 2"
         time={time}
+        date={selectedDate}
+        slotID={period.SlotID}
+        isAdmin={isAdmin}
         onRoomSelect={onRoomSelect}
+        onReservedRoomSelect={onReservedRoomSelect}
       />
       <RoomCell
-        isVacant={Number(period.Room3) === 0}
+        isVacant={period.Room3}
         isSelected={selectedRoom?.periodIndex === index && selectedRoom?.roomNumber === 3}
         periodIndex={index}
         roomNumber={3}
         period={period.PeriodName}
         room="Room 3"
         time={time}
+        date={selectedDate}
+        slotID={period.SlotID}
+        isAdmin={isAdmin}
         onRoomSelect={onRoomSelect}
+        onReservedRoomSelect={onReservedRoomSelect}
       />
     </tr>
   );

@@ -1,124 +1,304 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import ReservationsTable from "../components/ReservationsTable";
+import ReservationEditModal from "../components/ReservationEditModal";
+import { AdminReservation, PeriodOption } from "../lib/types";
+import { useAdminGuard } from "../lib/useAdminGuard";
 
-interface Reservation {
-  id: string;
-  roomId: string;
-  roomNumber: number;
-  guestName: string;
-  email: string;
-  date: string;
-  startTime: string;
-  endTime: string;
+interface ApiPeriod {
+  PeriodName: string;
+  StartTime: string;
+  EndTime: string;
+  SlotID: number;
+  Room1: boolean;
+  Room2: boolean;
+  Room3: boolean;
 }
 
 export default function ReservationsPage() {
-
-  const [reservations, setReservations] = useState<Reservation[]>([
-    {
-      id: "res1",
-      roomId: "room1",
-      roomNumber: 1,
-      guestName: "Michael Scott",
-      email: "michael.scott@email.com",
-      date: "2026-02-11",
-      startTime: "02:00 PM",
-      endTime: "03:30 PM",
-    },
-    {
-      id: "res2",
-      roomId: "room2",
-      roomNumber: 2,
-      guestName: "Pam Beesly",
-      email: "pam.beesly@email.com",
-      date: "2026-02-11",
-      startTime: "03:00 PM",
-      endTime: "04:00 PM",
-    },
-    {
-      id: "res3",
-      roomId: "room3",
-      roomNumber: 3,
-      guestName: "Jim Halpert",
-      email: "jim.halpert@email.com",
-      date: "2026-02-11",
-      startTime: "01:30 PM",
-      endTime: "02:30 PM",
-    },
-    {
-      id: "res4",
-      roomId: "room1",
-      roomNumber: 1,
-      guestName: "Dwight Schrute",
-      email: "dwight.schrute@email.com",
-      date: "2026-02-12",
-      startTime: "10:00 AM",
-      endTime: "11:00 AM",
-    },
-    {
-      id: "res5",
-      roomId: "room2",
-      roomNumber: 2,
-      guestName: "Angela Martin",
-      email: "angela.martin@email.com",
-      date: "2026-02-12",
-      startTime: "02:00 PM",
-      endTime: "03:30 PM",
-    },
-  ]);
+  const { isAuthorized, isCheckingAuth } = useAdminGuard();
+  const reservationsSectionRef = useRef<HTMLDivElement | null>(null);
+  const [reservations, setReservations] = useState<AdminReservation[]>([]);
+  const [isLoadingReservations, setIsLoadingReservations] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
 
   const [showCalendar, setShowCalendar] = useState(true);
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 1, 11));
-  const [selectedDate, setSelectedDate] = useState("");
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const getLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+  const [selectedDate, setSelectedDate] = useState(getLocalDateString(new Date()));
+  const reservationsRef = useRef<HTMLDivElement>(null);
+
+  const [periodOptions, setPeriodOptions] = useState<PeriodOption[]>([]);
+  const [isLoadingPeriods, setIsLoadingPeriods] = useState(false);
+  const [isLookingUpName, setIsLookingUpName] = useState(false);
 
   const [newReservation, setNewReservation] = useState({
     guestName: "",
     email: "",
     roomNumber: "1",
-    date: "",
-    startTime: "10:00 AM",
-    endTime: "11:00 AM",
+    date: new Date().toISOString().slice(0, 10),
+    slotId: "",
   });
 
-  const removeReservation = (reservationId: string, guestName: string) => {
-    if (
-      window.confirm(`Are you sure you want to cancel the reservation for ${guestName}?`)
-    ) {
-      setReservations(reservations.filter((res) => res.id !== reservationId));
-      alert(`Reservation for ${guestName} has been cancelled`);
+  const [suggestedEmail, setSuggestedEmail] = useState("");
+
+  const [editingReservation, setEditingReservation] = useState<AdminReservation | null>(null);
+  const [isEditingReservation, setIsEditingReservation] = useState(false);
+
+  const loadReservations = async (date?: string) => {
+    setIsLoadingReservations(true);
+    try {
+      const queryParam = date ? `?date=${encodeURIComponent(date)}` : "";
+      const response = await fetch(`/api/admin/reservations${queryParam}`, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error("Failed to fetch reservations");
+      }
+
+      const data = await response.json();
+      setReservations(Array.isArray(data.reservations) ? data.reservations : []);
+    } catch (error) {
+      console.error(error);
+      setReservations([]);
+    } finally {
+      setIsLoadingReservations(false);
     }
   };
 
-  const handleCreateReservation = () => {
-    if (!newReservation.guestName || !newReservation.email || !newReservation.date) {
-      alert("Please fill in all required fields");
+  useEffect(() => {
+    if (isAuthorized) {
+      loadReservations();
+    }
+  }, [isAuthorized]);
+
+  useEffect(() => {
+    if (selectedDate && reservationsRef.current) {
+      setTimeout(() => {
+        reservationsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 0);
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    if (!isAuthorized || !newReservation.date) {
+      setPeriodOptions([]);
       return;
     }
 
-    const newRes: Reservation = {
-      id: `res${Date.now()}`,
-      roomId: `room${newReservation.roomNumber}`,
-      roomNumber: parseInt(newReservation.roomNumber),
-      guestName: newReservation.guestName,
-      email: newReservation.email,
-      date: newReservation.date,
-      startTime: newReservation.startTime,
-      endTime: newReservation.endTime,
+    const loadPeriods = async () => {
+      setIsLoadingPeriods(true);
+      try {
+        const response = await fetch(`/api/periods?date=${encodeURIComponent(newReservation.date)}`, {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch periods");
+        }
+
+        const data = await response.json();
+        const options: PeriodOption[] = Array.isArray(data)
+          ? data.map((period: ApiPeriod) => ({
+              slotId: period.SlotID,
+              label: period.PeriodName,
+              startTime: period.StartTime,
+              endTime: period.EndTime,
+              roomAvailability: {
+                1: period.Room1,
+                2: period.Room2,
+                3: period.Room3,
+              },
+            }))
+          : [];
+
+        setPeriodOptions(options);
+      } catch (error) {
+        console.error(error);
+        setPeriodOptions([]);
+      } finally {
+        setIsLoadingPeriods(false);
+      }
     };
 
-    setReservations([...reservations, newRes]);
-    alert(`Reservation created for ${newReservation.guestName}`);
+    loadPeriods();
+  }, [isAuthorized, newReservation.date]);
+
+  useEffect(() => {
+    const roomNumber = Number(newReservation.roomNumber) as 1 | 2 | 3;
+
+    const currentSelection = periodOptions.find(
+      (option) => String(option.slotId) === newReservation.slotId
+    );
+
+    if (currentSelection && currentSelection.roomAvailability[roomNumber]) {
+      return;
+    }
+
+    const firstAvailable = periodOptions.find((option) => option.roomAvailability[roomNumber]);
+    setNewReservation((prev) => ({
+      ...prev,
+      slotId: firstAvailable ? String(firstAvailable.slotId) : "",
+    }));
+  }, [newReservation.roomNumber, newReservation.slotId, periodOptions]);
+
+  const selectedPeriod = useMemo(
+    () => periodOptions.find((option) => String(option.slotId) === newReservation.slotId),
+    [newReservation.slotId, periodOptions]
+  );
+
+  const removeReservation = async (reservationId: string, guestName: string) => {
+    if (!window.confirm(`Are you sure you want to cancel the reservation for ${guestName}?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/admin/reservations?reservationId=${encodeURIComponent(reservationId)}`,
+        { method: "DELETE" }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        window.alert(errorData.error || "Failed to cancel reservation");
+        return;
+      }
+
+      await loadReservations();
+      window.alert(`Reservation for ${guestName} has been cancelled`);
+    } catch (error) {
+      console.error(error);
+      window.alert("Failed to cancel reservation");
+    }
+  };
+
+  const handleGuestNameChange = async (name: string) => {
     setNewReservation({
-      guestName: "",
-      email: "",
-      roomNumber: "1",
-      date: "",
-      startTime: "10:00 AM",
-      endTime: "11:00 AM",
+      ...newReservation,
+      guestName: name,
     });
+
+    if (!name.trim()) {
+      setSuggestedEmail("");
+      return;
+    }
+
+    // Look up user by name using existing users endpoint
+    setIsLookingUpName(true);
+    try {
+      const response = await fetch(`/api/admin/users?query=${encodeURIComponent(name)}&searchType=name`, {
+        cache: "no-store",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.users && data.users.length > 0) {
+          // Store the suggestion but don't auto-fill yet
+          setSuggestedEmail(data.users[0].email);
+        } else {
+          setSuggestedEmail("");
+        }
+      }
+    } catch (error) {
+      console.error("Error looking up user:", error);
+      setSuggestedEmail("");
+    } finally {
+      setIsLookingUpName(false);
+    }
+  };
+
+  const handleCreateReservation = async () => {
+    if (!newReservation.guestName || !newReservation.date || !newReservation.slotId) {
+      window.alert("Please fill in guest name, date, and period");
+      return;
+    }
+
+    if (!newReservation.email) {
+      window.alert("Please provide an email or select a user from the lookup");
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const response = await fetch("/api/admin/reservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          guestName: newReservation.guestName,
+          email: newReservation.email,
+          roomNumber: Number(newReservation.roomNumber),
+          date: newReservation.date,
+          slotId: Number(newReservation.slotId),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        window.alert(errorData.error || "Failed to create reservation");
+        return;
+      }
+
+      await loadReservations();
+      window.alert(`Reservation created for ${newReservation.guestName}`);
+      setNewReservation((prev) => ({
+        ...prev,
+        guestName: "",
+        email: "",
+      }));
+    } catch (error) {
+      console.error(error);
+      window.alert("Failed to create reservation");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleEditReservation = (reservation: AdminReservation) => {
+    setEditingReservation(reservation);
+  };
+
+  const handleSaveEditedReservation = async (updates: {
+    email: string;
+    roomNumber: number;
+    slotId: number;
+    date: string;
+  }) => {
+    if (!editingReservation) return;
+
+    setIsEditingReservation(true);
+    try {
+      const response = await fetch("/api/admin/reservations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reservationId: editingReservation.id,
+          email: updates.email,
+          roomNumber: updates.roomNumber,
+          slotId: updates.slotId,
+          date: updates.date,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        window.alert(errorData.error || "Failed to update reservation");
+        return;
+      }
+
+      await loadReservations();
+      window.alert("Reservation updated successfully");
+      setEditingReservation(null);
+    } catch (error) {
+      console.error(error);
+      window.alert("Failed to update reservation");
+    } finally {
+      setIsEditingReservation(false);
+    }
   };
 
   const getDaysInMonth = (date: Date) => {
@@ -142,14 +322,37 @@ export default function ReservationsPage() {
   };
 
   const getReservationsForDate = (date: string) => {
-    return reservations.filter((res) => res.date === date);
+    return reservations.filter((reservation) => reservation.date === date);
   };
+
+  const scrollToReservations = () => {
+    window.requestAnimationFrame(() => {
+      reservationsSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  };
+
+  if (isCheckingAuth || !isAuthorized) {
+    return (
+      <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100 flex items-center justify-center">
+        <p className="text-gray-700 font-semibold">Loading reservations...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100">
       <PageHeader title="Booking Calendar & Reservations" />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
+        {isLoadingReservations ? (
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center text-gray-600 font-medium mb-8">
+            Loading reservations...
+          </div>
+        ) : null}
+
         <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
           <div className="px-6 py-4 bg-linear-to-r from-red-600 to-red-700 flex justify-between items-center">
             <h3 className="text-lg font-bold text-white">Booking Calendar</h3>
@@ -171,7 +374,7 @@ export default function ReservationsPage() {
                         onClick={previousMonth}
                         className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform cursor-pointer"
                       >
-                        ← Previous
+                        Previous
                       </button>
                       <h4 className="text-xl font-bold text-gray-900">
                         {currentDate.toLocaleDateString("en-US", {
@@ -183,7 +386,7 @@ export default function ReservationsPage() {
                         onClick={nextMonth}
                         className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold transition duration-200 shadow-md hover:shadow-lg active:scale-95 transform cursor-pointer"
                       >
-                        Next →
+                        Next
                       </button>
                     </div>
 
@@ -218,12 +421,11 @@ export default function ReservationsPage() {
                             }`}
                             onClick={() => {
                               setSelectedDate(dateStr);
-                              setNewReservation({ ...newReservation, date: dateStr });
+                              setNewReservation((prev) => ({ ...prev, date: dateStr }));
+                              scrollToReservations();
                             }}
                           >
-                            <span className={`font-semibold text-sm ${
-                              isSelected ? "text-white" : "text-gray-900"
-                            }`}>
+                            <span className={`font-semibold text-sm ${isSelected ? "text-white" : "text-gray-900"}`}>
                               {day}
                             </span>
                             {hasReservations && !isSelected && (
@@ -246,10 +448,14 @@ export default function ReservationsPage() {
                     {newReservation.date && (
                       <div className="mt-6 p-4 bg-white border-2 border-red-200 rounded-lg shadow-sm">
                         <h5 className="font-bold text-gray-900 mb-2 text-sm">
-                          📅 Selected: {new Date(newReservation.date).toLocaleDateString()}
+                          Selected: {(() => {
+                            const [year, month, day] = newReservation.date.split("-").map(Number);
+                            const date = new Date(year, month - 1, day);
+                            return date.toLocaleDateString();
+                          })()}
                         </h5>
                         <p className="text-xs text-gray-600">
-                          Click the "Create Reservation" button below to book this date, or select another date.
+                          Pick a room and period, then create the reservation.
                         </p>
                       </div>
                     )}
@@ -262,8 +468,8 @@ export default function ReservationsPage() {
                       Create New Reservation
                     </h5>
                     <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
+                      onSubmit={(event) => {
+                        event.preventDefault();
                         handleCreateReservation();
                       }}
                       className="space-y-4"
@@ -275,33 +481,47 @@ export default function ReservationsPage() {
                         <input
                           type="text"
                           value={newReservation.guestName}
-                          onChange={(e) =>
-                            setNewReservation({
-                              ...newReservation,
-                              guestName: e.target.value,
-                            })
+                          onChange={(event) =>
+                            handleGuestNameChange(event.target.value)
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
                           placeholder="John Doe"
                         />
+                        {isLookingUpName && (
+                          <p className="text-xs text-gray-500 mt-1">Looking up user...</p>
+                        )}
                       </div>
 
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-1">
-                          Email *
+                          Email
                         </label>
                         <input
                           type="email"
                           value={newReservation.email}
-                          onChange={(e) =>
+                          onChange={(event) =>
                             setNewReservation({
                               ...newReservation,
-                              email: e.target.value,
+                              email: event.target.value,
                             })
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
                           placeholder="john@example.com"
                         />
+                        {suggestedEmail && !newReservation.email && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setNewReservation({
+                                ...newReservation,
+                                email: suggestedEmail,
+                              })
+                            }
+                            className="mt-2 w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-gray-400 font-medium rounded-lg transition duration-200 active:scale-95 transform cursor-pointer"
+                          >
+                            Use: {suggestedEmail}
+                          </button>
+                        )}
                       </div>
 
                       <div>
@@ -310,10 +530,10 @@ export default function ReservationsPage() {
                         </label>
                         <select
                           value={newReservation.roomNumber}
-                          onChange={(e) =>
+                          onChange={(event) =>
                             setNewReservation({
                               ...newReservation,
-                              roomNumber: e.target.value,
+                              roomNumber: event.target.value,
                             })
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
@@ -331,59 +551,57 @@ export default function ReservationsPage() {
                         <input
                           type="date"
                           value={newReservation.date}
-                          onChange={(e) =>
+                          onChange={(event) =>
                             setNewReservation({
                               ...newReservation,
-                              date: e.target.value,
+                              date: event.target.value,
                             })
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            Start Time
-                          </label>
-                          <input
-                            type="text"
-                            value={newReservation.startTime}
-                            onChange={(e) =>
-                              setNewReservation({
-                                ...newReservation,
-                                startTime: e.target.value,
-                              })
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
-                            placeholder="10:00 AM"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            End Time
-                          </label>
-                          <input
-                            type="text"
-                            value={newReservation.endTime}
-                            onChange={(e) =>
-                              setNewReservation({
-                                ...newReservation,
-                                endTime: e.target.value,
-                              })
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
-                            placeholder="11:00 AM"
-                          />
-                        </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          Period *
+                        </label>
+                        <select
+                          value={newReservation.slotId}
+                          onChange={(event) =>
+                            setNewReservation({
+                              ...newReservation,
+                              slotId: event.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition text-gray-900"
+                          disabled={isLoadingPeriods || periodOptions.length === 0}
+                        >
+                          {periodOptions.length === 0 ? (
+                            <option value="">No available periods</option>
+                          ) : (
+                            periodOptions
+                              .filter((option) => option.roomAvailability[Number(newReservation.roomNumber) as 1 | 2 | 3])
+                              .map((option) => (
+                                <option key={option.slotId} value={option.slotId}>
+                                  {option.label} ({option.startTime} - {option.endTime})
+                                </option>
+                              ))
+                          )}
+                        </select>
                       </div>
+
+                      {selectedPeriod ? (
+                        <p className="text-xs text-gray-600 bg-white border border-red-100 rounded p-2">
+                          Selected slot: {selectedPeriod.label} ({selectedPeriod.startTime} - {selectedPeriod.endTime})
+                        </p>
+                      ) : null}
 
                       <button
                         type="submit"
-                        className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200 mt-6 shadow-md hover:shadow-lg active:scale-95 transform cursor-pointer"
+                        disabled={isCreating || !newReservation.slotId}
+                        className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition duration-200 mt-6 shadow-md hover:shadow-lg active:scale-95 transform cursor-pointer disabled:cursor-not-allowed"
                       >
-                        Create Reservation
+                        {isCreating ? "Creating..." : "Create Reservation"}
                       </button>
                     </form>
                   </div>
@@ -394,7 +612,10 @@ export default function ReservationsPage() {
         </div>
 
         {selectedDate && (
-          <div className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200">
+          <div
+            ref={reservationsSectionRef}
+            className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200"
+          >
             <div className="px-6 py-4 bg-linear-to-r from-red-600 to-red-700">
               <h3 className="text-lg font-bold text-white">
                 Reservations for {new Date(selectedDate).toLocaleDateString("en-US", {
@@ -414,6 +635,14 @@ export default function ReservationsPage() {
             </div>
           </div>
         )}
+
+        <ReservationEditModal
+          isOpen={editingReservation !== null}
+          reservation={editingReservation}
+          onClose={() => setEditingReservation(null)}
+          onSave={handleSaveEditedReservation}
+          isLoading={isEditingReservation}
+        />
       </div>
     </main>
   );
