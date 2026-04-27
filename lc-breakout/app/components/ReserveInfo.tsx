@@ -159,7 +159,7 @@ export default function ReserveInfo() {
   };
 
   return (
-    <main className="flex w-full flex-col items-center justify-start">
+    <div className="flex w-full flex-col items-center justify-start">
       <h1 className="text-center text-2xl font-bold sm:text-3xl lg:text-4xl">LC Breakout Room Sign-up</h1>
       <p className="mt-3 text-center text-base sm:text-lg">Sign up for a breakout room session.</p>
 
@@ -220,6 +220,6 @@ export default function ReserveInfo() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

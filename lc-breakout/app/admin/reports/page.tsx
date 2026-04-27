@@ -94,14 +94,14 @@ export default function Reports() {
 
   if (isCheckingAuth || !isAuthorized) {
     return (
-      <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-red-50 to-red-100 flex items-center justify-center">
         <p className="text-gray-700 font-semibold">Loading reports...</p>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100">
+    <div className="min-h-screen bg-linear-to-br from-red-50 to-red-100">
       <PageHeader title="Room Usage Reports" />
 
       <div className="max-w-7xl mx-auto px-6 py-12">

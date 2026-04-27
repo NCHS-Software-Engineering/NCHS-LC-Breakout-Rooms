@@ -95,9 +95,9 @@ export default function ManageUsersPage() {
 
   if (isCheckingAuth || !isAuthorized) {
     return (
-      <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-red-50 to-red-100 flex items-center justify-center">
         <p className="text-gray-700 font-semibold">Loading user management...</p>
-      </main>
+      </div>
     );
   }
 
@@ -120,7 +120,7 @@ export default function ManageUsersPage() {
   };
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-red-50 to-red-100">
+    <div className="min-h-screen bg-linear-to-br from-red-50 to-red-100">
       <PageHeader title="Manage Users" />
 
       <div className="max-w-5xl mx-auto px-6 py-10">
@@ -194,6 +194,6 @@ export default function ManageUsersPage() {
 
         <div className="mt-6">{renderContent()}</div>
       </div>
-    </main>
+    </div>
   );
 }
