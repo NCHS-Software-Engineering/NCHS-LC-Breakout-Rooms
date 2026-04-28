@@ -27,14 +27,14 @@ export default function RoomTable({
 
   return (
     <div className="w-full overflow-x-auto rounded-lg border border-black/20 bg-white">
-      <table className="min-w-[720px] w-full border-collapse text-black">
+      <table className="w-full border-collapse text-black table-fixed">
         <thead>
           <tr className="bg-red-600 text-white">
-            <th className="border border-black dark:border-gray-300 px-4 py-2 w-70">Period</th>
-            <th className="border border-black dark:border-gray-300 px-4 py-2 w-40">Time</th>
-            <th className="border border-black dark:border-gray-300 px-4 py-2 w-50">Room 1</th>
-            <th className="border border-black dark:border-gray-300 px-4 py-2 w-50">Room 2</th>
-            <th className="border border-black dark:border-gray-300 px-4 py-2 w-50">Room 3</th>
+            <th className="border border-black dark:border-gray-300 px-2 sm:px-4 py-2">Period</th>
+            <th className="border border-black dark:border-gray-300 px-2 sm:px-4 py-2">Time</th>
+            <th className="border border-black dark:border-gray-300 px-2 sm:px-4 py-2">Room 1</th>
+            <th className="border border-black dark:border-gray-300 px-2 sm:px-4 py-2">Room 2</th>
+            <th className="border border-black dark:border-gray-300 px-2 sm:px-4 py-2">Room 3</th>
           </tr>
         </thead>
         <tbody>

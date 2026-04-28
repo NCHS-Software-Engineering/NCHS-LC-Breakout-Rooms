@@ -52,7 +52,7 @@ export default function RoomCell({
     }
   };
 
-  const baseClasses = "border border-black dark:border-gray-300 px-4 py-2 font-bold box-border transition";
+  const baseClasses = "border border-black dark:border-gray-300 font-bold box-border transition flex-1";
 
   const stateClasses = isVacant
     ? isSelected
@@ -71,7 +71,7 @@ export default function RoomCell({
         onClick={handleClick}
         disabled={!isInteractive}
         aria-pressed={isSelected}
-        className="flex h-full w-full items-center justify-center bg-transparent px-4 py-2 rounded-none focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-100 dark:focus-visible:ring-offset-gray-900"
+        className="flex h-full w-full items-center justify-center bg-transparent px-2 sm:px-4 py-2 rounded-none focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-100 dark:focus-visible:ring-offset-gray-900"
       >
         {isVacant ? "Vacant" : "Reserved"}
       </button>
