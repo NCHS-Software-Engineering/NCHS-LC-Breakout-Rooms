@@ -9,7 +9,7 @@ export default function EmptyState({ message, icon = "search" }: EmptyStateProps
       <div className="flex justify-center mb-4">
         {icon === "search" ? (
           <svg
-            className="w-16 h-16 text-gray-400"
+            className="w-16 h-16 text-gray-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -24,7 +24,7 @@ export default function EmptyState({ message, icon = "search" }: EmptyStateProps
           </svg>
         ) : (
           <svg
-            className="w-16 h-16 text-gray-400"
+            className="w-16 h-16 text-gray-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

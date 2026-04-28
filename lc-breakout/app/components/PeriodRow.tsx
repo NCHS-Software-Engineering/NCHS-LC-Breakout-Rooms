@@ -27,10 +27,10 @@ export default function PeriodRow({
 
   return (
     <tr className={index % 2 === 0 ? "bg-gray-300" : "bg-gray-100"}>
-      <td className="border border-black dark:border-gray-300 px-4 py-2 font-bold">
+      <td className="border border-black dark:border-gray-300 px-2 sm:px-4 py-2 font-bold">
         {period.PeriodName}
       </td>
-      <td className="border border-black dark:border-gray-300 px-4 py-2">{time}</td>
+      <td className="border border-black dark:border-gray-300 px-2 sm:px-4 py-2">{time}</td>
       <RoomCell
         isVacant={period.Room1}
         isSelected={selectedRoom?.periodIndex === index && selectedRoom?.roomNumber === 1}

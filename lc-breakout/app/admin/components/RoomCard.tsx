@@ -28,7 +28,7 @@ export default function RoomCard({ room, onRemovePerson }: RoomCardProps) {
         {!room.currentOccupant ? (
           <div className="text-center py-8">
             <svg
-              className="w-12 h-12 text-gray-400 mx-auto mb-3"
+              className="w-12 h-12 text-gray-600 mx-auto mb-3"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

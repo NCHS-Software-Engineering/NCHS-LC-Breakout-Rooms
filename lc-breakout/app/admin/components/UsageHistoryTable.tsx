@@ -29,7 +29,7 @@ export default function UsageHistoryTable({
     return (
       <div className="p-8 text-center">
         <svg
-          className="w-16 h-16 text-gray-400 mx-auto mb-4"
+          className="w-16 h-16 text-gray-600 mx-auto mb-4"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -43,7 +43,7 @@ export default function UsageHistoryTable({
           />
         </svg>
         <p className="text-gray-500 font-medium">No usage recorded for this date</p>
-        <p className="text-gray-400 text-sm mt-1">Select another date to view usage history</p>
+        <p className="text-gray-600 text-sm mt-1">Select another date to view usage history</p>
       </div>
     );
   }

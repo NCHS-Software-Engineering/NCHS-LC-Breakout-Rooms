@@ -35,15 +35,22 @@ export default function UserInfo() {
   if (!session) {
     return (
       <div className="bg-red-400 p-6 rounded-lg shadow-md mb-6 border-red-400 text-center">
-        <p className="text-lg font-semibold text-red-900">Please sign in to see your role</p>
+        <p className="text-lg font-semibold text-black">Please sign in to see your role</p>
       </div>
     );
   }
 
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const recentReservations = reservations.filter(r => 
+      new Date(r.ReservationDate) >= sevenDaysAgo
+  );
+
   return (
     <div className="bg-red-400 p-6 rounded-lg shadow-md mb-6 border-red-400">
-      <h2 className="text-2xl font-bold mb-4 text-red-900">Welcome</h2>
-      <div className="space-y-2 text-red-900">
+      <h2 className="text-2xl font-bold mb-4 text-black">Welcome</h2>
+      <div className="space-y-2 text-black">
         <p><strong>Name:</strong> {session.user?.name}</p>
         <p><strong>Email:</strong> {session.user?.email}</p>
         <p>
@@ -51,7 +58,7 @@ export default function UserInfo() {
           <span className={`px-3 py-1 rounded-full font-semibold ${
             session.user?.role === "admin" ? "bg-red-600 text-white" :
             session.user?.role === "teacher" ? "bg-blue-600 text-white" :
-            "bg-green-600 text-white"
+            "bg-green-700 text-white"
           }`}>
             {session.user?.role?.toUpperCase() || "STUDENT"}
           </span>
@@ -59,9 +66,9 @@ export default function UserInfo() {
         <p><strong>Time Until Next Reservation:</strong> {cooldown ? new Date(cooldown).toLocaleString() : "No cooldown"}</p>
         <div>
           <strong>Your Reservations:</strong>
-          {reservations.length > 0 ? (
+          {recentReservations.length > 0 ? (
             <ul className="ml-4 list-disc">
-              {reservations.map(r => (
+              {recentReservations.map(r => (
                 <li key={`${r.RoomID}-${r.SlotID}-${r.ReservationDate}`}>
                   Room {r.RoomID}, {`Period ` + r.PeriodName || `Slot ${r.SlotID}`}, Date {r.ReservationDate}
                 </li>

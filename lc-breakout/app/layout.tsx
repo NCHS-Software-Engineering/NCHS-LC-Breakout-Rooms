@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Roboto, Montserrat } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/NavBar";
 import Providers from "./providers";
+import SkipLink from "./components/SkipLink";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,8 +44,12 @@ export default function RootLayout({
         className={`${montserrat.variable} ${geistMono.variable} antialiased !bg-[#fefefe] dark:!bg-[#0f1415] !text-black dark:!text-white`}
       >
         <Providers>
+          <SkipLink />
           <Navbar />
-          {children}
+          <main id="main-content" tabIndex={-1}>
+            {children}
+          </main>
+          <div role="alert" aria-live="polite" aria-atomic="true" className="sr-only" id="notifications" />
         </Providers>
       </body>
     </html>

@@ -2,7 +2,7 @@ import AdminLoginForm from "../components/AdminLoginForm";
 
 export default function AdminLoginPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-linear-to-br from-red-50 to-red-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-red-50 to-red-100 px-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-xl p-8 hover:shadow-2xl transition-shadow duration-300">
           <div className="text-center mb-8">
@@ -40,6 +40,6 @@ export default function AdminLoginPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

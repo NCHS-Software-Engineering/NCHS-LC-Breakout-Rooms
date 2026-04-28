@@ -7,16 +7,17 @@ interface Reservation {
   guestName: string;
   email: string;
   date: string;
+  period: string;
   startTime: string;
   endTime: string;
-  slotId?: number;
+  slotId: number;
 }
 
 interface ReservationsTableProps {
   selectedDate: string;
   reservations: Reservation[];
   onRemove: (id: string, name: string) => void;
-  onEdit: (reservation: Reservation) => void;
+  onEdit?: (reservation: Reservation) => void;
 }
 
 export default function ReservationsTable({
@@ -47,7 +48,7 @@ export default function ReservationsTable({
           {selectedDate ? `Reservations for ${formattedDate}` : "Select a date to view reservations"}
         </h3>
         {selectedDate && (
-          <p className="text-red-100 text-sm mt-1">
+          <p className="text-white text-sm mt-1">
             {dayReservations.length} reservation{dayReservations.length !== 1 ? "s" : ""}
           </p>
         )}
@@ -56,7 +57,7 @@ export default function ReservationsTable({
       {!selectedDate ? (
         <div className="p-12 text-center">
           <svg
-            className="w-16 h-16 text-gray-400 mx-auto mb-4"
+            className="w-16 h-16 text-gray-600 mx-auto mb-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -74,7 +75,7 @@ export default function ReservationsTable({
       ) : dayReservations.length === 0 ? (
         <div className="p-12 text-center">
           <svg
-            className="w-16 h-16 text-gray-400 mx-auto mb-4"
+            className="w-16 h-16 text-gray-600 mx-auto mb-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -127,12 +128,14 @@ export default function ReservationsTable({
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex gap-2 justify-center">
-                        <button
-                          onClick={() => onEdit(reservation)}
-                          className="px-3 py-1 text-blue-600 hover:bg-blue-100 rounded transition duration-200 text-sm font-semibold cursor-pointer"
-                        >
-                          Edit
-                        </button>
+                        {onEdit ? (
+                          <button
+                            onClick={() => onEdit(reservation)}
+                            className="px-3 py-1 text-blue-600 hover:bg-blue-100 rounded transition duration-200 text-sm font-semibold cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                        ) : null}
                         <button
                           onClick={() =>
                             onRemove(reservation.id, reservation.guestName)
