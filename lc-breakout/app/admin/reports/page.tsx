@@ -218,6 +218,6 @@ export default function Reports() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

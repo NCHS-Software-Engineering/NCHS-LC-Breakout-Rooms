@@ -4,17 +4,21 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 type Reservation = {
+  ReservationID: number;
   RoomID: number;
   SlotID: number;
   ReservationDate: string;
   CreatedAt: string;
   PeriodName: string | null;
+  EndTime: string;
 };
 
 export default function UserInfo() {
   const { data: session, status } = useSession();
   const [cooldown, setCooldown] = useState<string | null>(null);
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [cancelingId, setCancelingId] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (session?.user?.email) {
@@ -27,6 +31,37 @@ export default function UserInfo() {
         .catch(err => console.error("Failed to fetch reservations:", err));
     }
   }, [session]);
+
+  const handleCancel = async (reservationId: number) => {
+    setCancelingId(reservationId);
+    setError(null);
+    try {
+      const response = await fetch(`/api/reservations?reservationId=${reservationId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to cancel reservation");
+      }
+
+      // Remove the reservation from the list
+      setReservations(reservations.filter(r => r.ReservationID !== reservationId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setCancelingId(null);
+    }
+  };
+
+  const isReservationPassed = (reservation: Reservation) => {
+    const now = new Date();
+    const [year, month, day] = reservation.ReservationDate.split('-').map(Number);
+    const [hours, minutes] = reservation.EndTime.split(':').map(Number);
+    
+    const slotEndTime = new Date(year, month - 1, day, hours, minutes);
+    return now > slotEndTime;
+  };
 
   if (status === "loading") {
     return <div className="text-center text-gray-600">Loading...</div>;
@@ -66,13 +101,27 @@ export default function UserInfo() {
         <p><strong>Time Until Next Reservation:</strong> {cooldown ? new Date(cooldown).toLocaleString() : "No cooldown"}</p>
         <div>
           <strong>Your Reservations:</strong>
+          {error && <p className="text-red-700 font-semibold mt-2">{error}</p>}
           {recentReservations.length > 0 ? (
-            <ul className="ml-4 list-disc">
-              {recentReservations.map(r => (
-                <li key={`${r.RoomID}-${r.SlotID}-${r.ReservationDate}`}>
-                  Room {r.RoomID}, {`Period ` + r.PeriodName || `Slot ${r.SlotID}`}, Date {r.ReservationDate}
-                </li>
-              ))}
+            <ul className="ml-4 space-y-2 mt-2">
+              {recentReservations.map(r => {
+                const isPassed = isReservationPassed(r);
+                return (
+                  <li key={r.ReservationID} className="flex items-center justify-between bg-red-300 p-2 rounded">
+                    <span>
+                      Room {r.RoomID}, {`Period ` + r.PeriodName || `Slot ${r.SlotID}`}, Date {r.ReservationDate}
+                    </span>
+                    <button
+                      onClick={() => handleCancel(r.ReservationID)}
+                      disabled={cancelingId === r.ReservationID || isPassed}
+                      title={isPassed ? "Cannot cancel past reservations" : "Cancel this reservation"}
+                      className="ml-4 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold py-1 px-3 rounded transition duration-200 text-sm cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      {cancelingId === r.ReservationID ? "Canceling..." : isPassed ? "Passed" : "Cancel"}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <p>No reservations yet</p>

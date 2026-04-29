@@ -23,11 +23,13 @@ export async function GET() {
     // 2️⃣ Get only future reservations with period names
     const [reservationRows] = await db.query<RowDataPacket[]>(
         `SELECT 
+            r.ReservationID,
             r.RoomID, 
             r.SlotID, 
             DATE_FORMAT(r.ReservationDate, '%Y-%m-%d') AS ReservationDate,
             r.CreatedAt,
-            ts.PeriodLabel AS PeriodName
+            ts.PeriodLabel AS PeriodName,
+            ts.EndTime
         FROM Reservation r
         LEFT JOIN TimeSlot ts ON r.SlotID = ts.SlotID
         WHERE r.Email = ?

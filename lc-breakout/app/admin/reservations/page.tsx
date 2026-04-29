@@ -616,16 +616,6 @@ export default function ReservationsPage() {
             ref={reservationsSectionRef}
             className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200"
           >
-            <div className="px-6 py-4 bg-linear-to-r from-red-600 to-red-700">
-              <h3 className="text-lg font-bold text-white">
-                Reservations for {new Date(selectedDate).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </h3>
-            </div>
             <div className="p-6">
               <ReservationsTable
                 selectedDate={selectedDate}

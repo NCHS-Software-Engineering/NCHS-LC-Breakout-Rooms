@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import db from "@/app/lib/db";
-import { RowDataPacket } from "mysql2";
+import { RowDataPacket, ResultSetHeader } from "mysql2";
 
 
 export async function POST(req: Request) {
@@ -88,6 +88,82 @@ export async function POST(req: Request) {
 
   } catch (err) {
     console.error("Reservation error:", err);
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    // 1. Get session
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const url = new URL(req.url);
+    const reservationId = Number(url.searchParams.get("reservationId"));
+
+    if (Number.isNaN(reservationId) || reservationId <= 0) {
+      return NextResponse.json({ error: "Invalid reservation ID" }, { status: 400 });
+    }
+
+    // 2. Verify the reservation belongs to the current user and get details
+    const [reservationRows] = await db.query<RowDataPacket[]>(
+      `SELECT r.Email, DATE_FORMAT(r.ReservationDate, '%Y-%m-%d') AS ReservationDate, ts.EndTime
+       FROM Reservation r
+       JOIN TimeSlot ts ON r.SlotID = ts.SlotID
+       WHERE r.ReservationID = ?`,
+      [reservationId]
+    );
+
+    if (reservationRows.length === 0) {
+      return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
+    }
+
+    const reservation = reservationRows[0];
+
+    if (reservation.Email !== session.user.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    // 3. Check if the slot time has passed
+    const now = new Date();
+    const [year, month, day] = String(reservation.ReservationDate).split('-').map(Number);
+    const [hours, minutes] = String(reservation.EndTime).split(':').map(Number);
+    
+    const slotEndTime = new Date(year, month - 1, day, hours, minutes);
+
+    if (now > slotEndTime) {
+      return NextResponse.json(
+        { error: "Cannot cancel past reservations" },
+        { status: 400 }
+      );
+    }
+
+    // 4. Delete the reservation
+    const [result] = await db.query<ResultSetHeader>(
+      `DELETE FROM Reservation WHERE ReservationID = ?`,
+      [reservationId]
+    );
+
+    if (result.affectedRows === 0) {
+      return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
+    }
+
+    // 5. Reset user's cooldown (set to 3 minutes from now)
+    await db.query(
+      `UPDATE User SET CooldownUntil = DATE_ADD(NOW(), INTERVAL 3 MINUTE) WHERE Email = ?`,
+      [session.user.email]
+    );
+
+    return NextResponse.json({ success: true });
+
+  } catch (err) {
+    console.error("Reservation DELETE error:", err);
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }
